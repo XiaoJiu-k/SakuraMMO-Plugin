@@ -320,7 +320,7 @@ public final class SakuraCommand implements CommandExecutor, TabCompleter {
             if (!stats.isEmpty()) {
                 stats.append("&7, ");
             }
-            stats.append("&f").append(entry.getKey()).append(" &7+&f").append(Text.number(entry.getValue()));
+            stats.append("&f").append(Text.statCN(entry.getKey())).append(" &7+&f").append(Text.number(entry.getValue()));
         }
         Msg.sendRaw(sender, "class.info-line-stats", "stats", stats.isEmpty() ? "&7无" : stats.toString());
 

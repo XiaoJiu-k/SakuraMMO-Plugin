@@ -85,7 +85,8 @@ public final class AdminGUI extends Menu {
         for (Player online : Bukkit.getOnlinePlayers()) {
             var profile = profileSample.get(online.getUniqueId());
             if (profile != null && profile.hasClass()) {
-                counts.merge(profile.classId(), 1, Integer::sum);
+                var cd = plugin.config().classOf(profile.classId());
+                counts.merge(cd == null ? profile.classId() : cd.displayName(), 1, Integer::sum);
             }
         }
         StringBuilder classes = new StringBuilder();

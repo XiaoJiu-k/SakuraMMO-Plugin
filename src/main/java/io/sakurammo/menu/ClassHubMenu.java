@@ -182,7 +182,7 @@ public final class ClassHubMenu extends Menu {
             if (!sb.isEmpty()) {
                 sb.append("&7, ");
             }
-            sb.append("&f").append(entry.getKey()).append(" &a+").append(Text.number(entry.getValue()));
+            sb.append("&f").append(Text.statCN(entry.getKey())).append(" &a+").append(Text.number(entry.getValue()));
         }
         return sb.isEmpty() ? Msg.raw("menu.none") : sb.toString();
     }

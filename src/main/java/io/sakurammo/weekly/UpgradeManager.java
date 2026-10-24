@@ -128,7 +128,7 @@ public final class UpgradeManager {
         if (inherited != null && inherited.hasItemMeta()
                 && inherited.getItemMeta().getAttributeModifiers() != null) {
             inherited.getItemMeta().getAttributeModifiers().forEach((attr, mod) ->
-                    loreLines.add("&7继承 &b" + attr.getKey().getKey() + " "
+                    loreLines.add("&7继承 &b" + Text.attrCN(attr.getKey().getKey()) + " "
                             + (mod.getAmount() >= 0 ? "+" : "") + Text.number(mod.getAmount())));
         }
         for (Map.Entry<String, Double> entry : def.attributes().entrySet()) {

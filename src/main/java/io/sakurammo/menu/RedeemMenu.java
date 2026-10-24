@@ -42,7 +42,7 @@ public final class RedeemMenu extends Menu {
             final ProductDef item = def;
             List<String> lore = new ArrayList<>(def.lore());
             for (Map.Entry<String, Double> entry : def.attributes().entrySet()) {
-                lore.add("&b" + entry.getKey() + (entry.getValue() >= 0 ? " +" : " ")
+                lore.add("&b" + Text.attrCN(entry.getKey()) + (entry.getValue() >= 0 ? " +" : " ")
                         + Text.number(entry.getValue()));
             }
             lore.add(Msg.raw("redeem.line-token", "cost", String.valueOf(def.tokenCost())));
