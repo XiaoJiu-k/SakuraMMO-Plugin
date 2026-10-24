@@ -1,7 +1,6 @@
 package io.sakurammo.menu;
 
 import io.sakurammo.SakuraMMOPlugin;
-import io.sakurammo.config.MainConfig;
 import io.sakurammo.player.PlayerProfile;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -10,11 +9,14 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
-import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.Inventory;
 
 /**
- * 菜单总控：按 F 打开、点击分发、拖拽拦截。
+ * 菜单总控：打开入口分发、点击分发、拖拽拦截。
+ * <p>
+ * 打开方式（v2 按键布局）：潜行 + F（PlayerListener 拦截副手交换）、
+ * V 键（InputEngine 桥接，KeyBridgeHook 分发）、/sm menu 命令。
+ * F 单独按下已改为技能槽，不再开菜单。
  */
 public final class MenuManager implements Listener {
 
@@ -38,27 +40,6 @@ public final class MenuManager implements Listener {
         new MainMenu(plugin, player).open();
     }
 
-    // ---------------- 按 F ----------------
-
-    @EventHandler(priority = EventPriority.LOWEST)
-    public void onSwapHands(PlayerSwapHandItemsEvent event) {
-        MainConfig config = plugin.config().main();
-        if (!config.menuEnabled() || !config.menuInterceptSwap()) {
-            return;
-        }
-        Player player = event.getPlayer();
-        if (config.menuShiftBypass() && player.isSneaking()) {
-            return; // 潜行时保留原版副手交换
-        }
-        event.setCancelled(true);
-        // 下一 tick 再开，避免和副手交换动作在同一 tick 打架
-        Bukkit.getScheduler().runTask(plugin, () -> {
-            if (player.isOnline()) {
-                open(player);
-            }
-        });
-    }
-
     // ---------------- 点击 ----------------
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -72,7 +53,7 @@ public final class MenuManager implements Listener {
             return; // 点在玩家自己背包里，只拦不处理
         }
         if (event.getWhoClicked() instanceof Player) {
-            menu.click(event.getRawSlot());
+            menu.click(event.getRawSlot(), event.getClick());
         }
     }
 

@@ -1,0 +1,64 @@
+# ============================================================
+# SakuraMMO 制造系统（阶段三）
+# 底材来自副本 Boss 与野外掉落/采矿；成品带固定词条（原版 attribute modifiers）
+# + 品质色名称，PDC 标记 sakurammo.crafted，卖出只按配方价 25% 回收（防刷金）。
+# ============================================================
+
+# 底材定义：id → 展示名 / 图标（材质）/ 颜色
+materials:
+  blackiron_ingot:
+    name: 黑铁锭
+    item: IRON_INGOT
+    color: "&8"
+  mana_crystal:
+    name: 魔晶
+    item: AMETHYST_SHARD
+    color: "&5"
+  dark_core:
+    name: 暗核
+    item: COAL
+    color: "&4"
+
+# 配方：id → 成品（材质/名称/品质色/词条）+ 底材 + 手续费
+# 词条（attributes）：attribute 名 → 数值（1.21 原版属性：attack_damage / armor / armor_toughness / max_health / movement_speed / attack_speed）
+recipes:
+  blackiron_sword:
+    display: 黑铁长剑
+    item: IRON_SWORD
+    color: "&6"
+    lore:
+      - "&7副本底材锻造，稳定输出之选"
+    attributes:
+      attack_damage: 9
+      attack_speed: -2.2
+    cost-materials:
+      blackiron_ingot: 4
+      mana_crystal: 2
+    fee: 80
+  blackiron_chestplate:
+    display: 黑铁胸甲
+    item: IRON_CHESTPLATE
+    color: "&6"
+    lore:
+      - "&7重铸的黑铁板甲， tank 首选"
+    attributes:
+      armor: 9
+      armor_toughness: 2
+      max_health: 4
+    cost-materials:
+      blackiron_ingot: 6
+      dark_core: 1
+    fee: 120
+  crystal_wand:
+    display: 魔晶法杖
+    item: BLAZE_ROD
+    color: "&5"
+    lore:
+      - "&7凝结晶簇魔力的法杖"
+    attributes:
+      attack_damage: 5
+      movement_speed: 0.02
+    cost-materials:
+      mana_crystal: 6
+      dark_core: 2
+    fee: 150

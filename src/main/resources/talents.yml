@@ -1,0 +1,399 @@
+# ============================================================
+# SakuraMMO 天赋树（阶段三）
+# 节点效果类型（key 决定生效通道）：
+#   stat         AuraSkills 属性（9 项之一），值 = 每级加成
+#   cooldown     全局冷却缩减，值 = 每级比例（0.05 = 5%/级）
+#   cost         全局资源消耗降低，值 = 每级比例
+#   resource-max 职业资源上限加成，值 = 每级点数
+#   resource-regen 职业资源每秒回复加成，值 = 每级
+#   skill-damage 指定技能的伤害倍率，值 = 每级比例（0.15 = +15%/级）
+# requires: {node: <节点id>, points: <需求点数>} —— 前置节点
+# ============================================================
+
+reset-cost: 500
+
+ironwarden:
+  display: 铁卫
+  branch-a:
+    name: 堡垒守卫
+    color: "&6"
+    nodes:
+      ironwarden_fortress_stone:
+        name: 石肤
+        icon: SHIELD
+        max: 3
+        stat: health
+        per-level: 3
+        desc: "每级最大生命 +3"
+      ironwarden_fortress_wall:
+        name: 坚壁
+        icon: IRON_BLOCK
+        max: 2
+        requires: {node: ironwarden_fortress_stone, points: 3}
+        stat: toughness
+        per-level: 2
+        desc: "每级韧性 +2（减伤提升）"
+      ironwarden_fortress_resolve:
+        name: 战意
+        icon: CLOCK
+        max: 2
+        requires: {node: ironwarden_fortress_wall, points: 2}
+        cooldown: 0.05
+        desc: "每级技能冷却缩减 +5%"
+  branch-b:
+    name: 战场统帅
+    color: "&b"
+    nodes:
+      ironwarden_command_rage:
+        name: 怒气不竭
+        icon: BLAZE_POWDER
+        max: 3
+        resource-max: rage
+        per-level: 20
+        desc: "每级怒气上限 +20"
+      ironwarden_command_slam:
+        name: 裂地强化
+        icon: GRAVEL
+        max: 2
+        requires: {node: ironwarden_command_rage, points: 3}
+        skill-damage: ironwarden_ground_slam
+        per-level: 0.15
+        desc: "每级【大地践踏】伤害 +15%"
+      ironwarden_command_thrift:
+        name: 节流
+        icon: HOPPER
+        max: 2
+        requires: {node: ironwarden_command_slam, points: 2}
+        cost: 0.10
+        desc: "每级技能资源消耗 -10%"
+
+paladin:
+  display: 圣骑士
+  branch-a:
+    name: 神圣壁垒
+    color: "&e"
+    nodes:
+      paladin_bulwark_hp:
+        name: 圣愈之躯
+        icon: SHIELD
+        max: 3
+        stat: health
+        per-level: 2
+        desc: "每级最大生命 +2"
+      paladin_bulwark_tough:
+        name: 圣盾守护
+        icon: IRON_BLOCK
+        max: 2
+        requires: {node: paladin_bulwark_hp, points: 3}
+        stat: toughness
+        per-level: 2
+        desc: "每级韧性 +2"
+      paladin_bulwark_regen:
+        name: 圣光回流
+        icon: GLOWSTONE_DUST
+        max: 2
+        requires: {node: paladin_bulwark_tough, points: 2}
+        resource-regen: holy
+        per-level: 0.5
+        desc: "每级圣能回复 +0.5/秒"
+  branch-b:
+    name: 审判先锋
+    color: "&c"
+    nodes:
+      paladin_verdict_dmg:
+        name: 神圣震击
+        icon: BLAZE_ROD
+        max: 2
+        skill-damage: paladin_divine_verdict
+        per-level: 0.15
+        desc: "每级【神圣裁决】伤害 +15%"
+      paladin_verdict_cost:
+        name: 虔诚
+        icon: HOPPER
+        max: 2
+        requires: {node: paladin_verdict_dmg, points: 2}
+        cost: 0.08
+        desc: "每级技能资源消耗 -8%"
+      paladin_verdict_crit:
+        name: 审判之眼
+        icon: ARROW
+        max: 3
+        requires: {node: paladin_verdict_cost, points: 2}
+        stat: crit_chance
+        per-level: 1
+        desc: "每级暴击率 +1"
+
+priest:
+  display: 牧师
+  branch-a:
+    name: 圣光医者
+    color: "&f"
+    nodes:
+      priest_healer_mana:
+        name: 法力泉涌
+        icon: LAPIS_LAZULI
+        max: 3
+        resource-max: mana
+        per-level: 50
+        desc: "每级法力上限 +50"
+      priest_healer_regen:
+        name: 静谧祷言
+        icon: GLOWSTONE_DUST
+        max: 2
+        requires: {node: priest_healer_mana, points: 3}
+        resource-regen: mana
+        per-level: 1.0
+        desc: "每级法力回复 +1/秒"
+      priest_healer_cost:
+        name: 慈悲
+        icon: HOPPER
+        max: 2
+        requires: {node: priest_healer_regen, points: 2}
+        cost: 0.08
+        desc: "每级技能资源消耗 -8%"
+  branch-b:
+    name: 惩戒导师
+    color: "&5"
+    nodes:
+      priest_discipline_wis:
+        name: 神秘学识
+        icon: BOOK
+        max: 3
+        stat: wisdom
+        per-level: 2
+        desc: "每级智慧 +2（法力上限与回复提升）"
+      priest_discipline_cd:
+        name: 快速吟唱
+        icon: CLOCK
+        max: 2
+        requires: {node: priest_discipline_wis, points: 3}
+        cooldown: 0.05
+        desc: "每级技能冷却缩减 +5%"
+      priest_discipline_hp:
+        name: 生存意志
+        icon: SHIELD
+        max: 3
+        requires: {node: priest_discipline_cd, points: 2}
+        stat: health
+        per-level: 2
+        desc: "每级最大生命 +2"
+
+assassin:
+  display: 刺客
+  branch-a:
+    name: 致命专精
+    color: "&4"
+    nodes:
+      assassin_lethal_crit:
+        name: 弱点洞察
+        icon: ARROW
+        max: 3
+        stat: crit_chance
+        per-level: 2
+        desc: "每级暴击率 +2"
+      assassin_lethal_dmg:
+        name: 处决艺术
+        icon: IRON_SWORD
+        max: 2
+        requires: {node: assassin_lethal_crit, points: 3}
+        skill-damage: assassin_eviscerate
+        per-level: 0.20
+        desc: "每级【剔骨】伤害 +20%"
+      assassin_lethal_speed:
+        name: 疾风步
+        icon: FEATHER
+        max: 2
+        requires: {node: assassin_lethal_dmg, points: 2}
+        cooldown: 0.05
+        desc: "每级技能冷却缩减 +5%"
+  branch-b:
+    name: 暗影行者
+    color: "&8"
+    nodes:
+      assassin_shadow_cost:
+        name: 能量掌控
+        icon: HOPPER
+        max: 2
+        cost: 0.10
+        desc: "每级技能资源消耗 -10%"
+      assassin_shadow_move:
+        name: 影遁
+        icon: FEATHER
+        max: 3
+        requires: {node: assassin_shadow_cost, points: 2}
+        stat: speed
+        per-level: 1
+        desc: "每级移速 +1"
+      assassin_shadow_eva:
+        name: 幸运闪避
+        icon: SLIME_BALL
+        max: 2
+        requires: {node: assassin_shadow_move, points: 3}
+        stat: luck
+        per-level: 2
+        desc: "每级幸运 +2"
+
+ranger:
+  display: 游侠
+  branch-a:
+    name: 神射手
+    color: "&a"
+    nodes:
+      ranger_marksman_crit:
+        name: 精准瞄准
+        icon: ARROW
+        max: 3
+        stat: crit_chance
+        per-level: 1
+        desc: "每级暴击率 +1"
+      ranger_marksman_shot:
+        name: 贯穿射击
+        icon: BOW
+        max: 2
+        requires: {node: ranger_marksman_crit, points: 3}
+        skill-damage: ranger_aimed_shot
+        per-level: 0.15
+        desc: "每级【瞄准射击】伤害 +15%"
+      ranger_marksman_cd:
+        name: 速射
+        icon: CLOCK
+        max: 2
+        requires: {node: ranger_marksman_shot, points: 2}
+        cooldown: 0.05
+        desc: "每级技能冷却缩减 +5%"
+  branch-b:
+    name: 陷阱大师
+    color: "&9"
+    nodes:
+      ranger_trap_cost:
+        name: 精打细算
+        icon: HOPPER
+        max: 2
+        cost: 0.10
+        desc: "每级技能资源消耗 -10%"
+      ranger_trap_luck:
+        name: 野外生存
+        icon: SLIME_BALL
+        max: 3
+        requires: {node: ranger_trap_cost, points: 2}
+        stat: luck
+        per-level: 2
+        desc: "每级幸运 +2"
+      ranger_trap_hp:
+        name: 皮革护具
+        icon: SHIELD
+        max: 3
+        requires: {node: ranger_trap_luck, points: 3}
+        stat: health
+        per-level: 2
+        desc: "每级最大生命 +2"
+
+elementalist:
+  display: 元素法师
+  branch-a:
+    name: 元素毁灭
+    color: "&6"
+    nodes:
+      elementalist_destruction_burst:
+        name: 湮灭
+        icon: BLAZE_POWDER
+        max: 2
+        skill-damage: elementalist_arcane_burst
+        per-level: 0.15
+        desc: "每级【奥术爆发】伤害 +15%"
+      elementalist_destruction_crit:
+        name: 元素暴走
+        icon: ARROW
+        max: 3
+        requires: {node: elementalist_destruction_burst, points: 2}
+        stat: crit_chance
+        per-level: 1
+        desc: "每级暴击率 +1"
+      elementalist_destruction_cd:
+        name: 咏唱加速
+        icon: CLOCK
+        max: 2
+        requires: {node: elementalist_destruction_crit, points: 3}
+        cooldown: 0.05
+        desc: "每级技能冷却缩减 +5%"
+  branch-b:
+    name: 奥术操控
+    color: "&b"
+    nodes:
+      elementalist_arcane_mana:
+        name: 奥术容量
+        icon: LAPIS_LAZULI
+        max: 3
+        resource-max: mana
+        per-level: 50
+        desc: "每级法力上限 +50"
+      elementalist_arcane_cost:
+        name: 法力效率
+        icon: HOPPER
+        max: 2
+        requires: {node: elementalist_arcane_mana, points: 3}
+        cost: 0.08
+        desc: "每级技能资源消耗 -8%"
+      elementalist_arcane_wis:
+        name: 智慧启迪
+        icon: BOOK
+        max: 3
+        requires: {node: elementalist_arcane_cost, points: 2}
+        stat: wisdom
+        per-level: 2
+        desc: "每级智慧 +2"
+
+warlock:
+  display: 术士
+  branch-a:
+    name: 痛苦编织
+    color: "&5"
+    nodes:
+      warlock_pain_cost:
+        name: 灵魂节约
+        icon: HOPPER
+        max: 2
+        cost: 0.10
+        desc: "每级技能资源消耗 -10%"
+      warlock_pain_hp:
+        name: 血肉契约
+        icon: SHIELD
+        max: 3
+        requires: {node: warlock_pain_cost, points: 2}
+        stat: health
+        per-level: 3
+        desc: "每级最大生命 +3"
+      warlock_pain_mana:
+        name: 魔息
+        icon: LAPIS_LAZULI
+        max: 3
+        requires: {node: warlock_pain_hp, points: 3}
+        resource-max: mana
+        per-level: 40
+        desc: "每级法力上限 +40"
+  branch-b:
+    name: 恶魔契约
+    color: "&c"
+    nodes:
+      warlock_demon_burst:
+        name: 灵魂灼烧
+        icon: BLAZE_POWDER
+        max: 2
+        skill-damage: warlock_soul_burst
+        per-level: 0.15
+        desc: "每级【灵魂爆裂】伤害 +15%"
+      warlock_demon_cd:
+        name: 急召
+        icon: CLOCK
+        max: 2
+        requires: {node: warlock_demon_burst, points: 2}
+        cooldown: 0.05
+        desc: "每级技能冷却缩减 +5%"
+      warlock_demon_regen:
+        name: 地狱馈赠
+        icon: GLOWSTONE_DUST
+        max: 2
+        requires: {node: warlock_demon_cd, points: 2}
+        resource-regen: mana
+        per-level: 1.0
+        desc: "每级法力回复 +1/秒"

@@ -99,12 +99,12 @@ public final class ClassManager {
             return Result.fail(Msg.raw("class.switch-cooldown",
                     "time", TimeFormat.humanize(profile.switchCooldownUntil() - now)));
         }
-        if (config.switchCost() > 0.0D && plugin.vault().available()) {
-            if (!plugin.vault().has(player, config.switchCost())) {
+        if (config.switchCost() > 0.0D && plugin.economy().available()) {
+            if (!plugin.economy().has(player, config.switchCost())) {
                 return Result.fail(Msg.raw("class.switch-cost-fail",
                         "cost", Text.number(config.switchCost())));
             }
-            if (!plugin.vault().withdraw(player, config.switchCost())) {
+            if (!plugin.economy().withdraw(player, config.switchCost())) {
                 return Result.fail(Msg.raw("class.switch-cost-fail",
                         "cost", Text.number(config.switchCost())));
             }
@@ -144,6 +144,67 @@ public final class ClassManager {
                 ? Msg.raw("class.switched", "old", oldDisplay, "new", target.displayName())
                 : Msg.raw("class.selected", "class", target.displayName(), "role", target.role());
         return Result.ok(message);
+    }
+
+    // ---------------- 管理员重置 ----------------
+
+    /**
+     * 管理员重置：撤销玩家的职业，回到「未选择」状态（可重新 select，免切换冷却）。
+     * 在线玩家立即生效：清 AuraSkills 修饰符、技能权限、资源、冷却、绑定。
+     */
+    public Result reset(Player target) {
+        PlayerProfile profile = plugin.playerData().getOrLoad(target);
+        if (!profile.hasClass()) {
+            return Result.fail(Msg.raw("class.reset-no-class", "player", target.getName()));
+        }
+        String oldDisplay = displayOf(profile.classId());
+
+        AuraSkillsHook hook = plugin.aura();
+        if (hook.available()) {
+            hook.removeAllClassModifiers(target);
+        } else if (hook.pluginPresent()) {
+            hook.removeViaCommand(target);
+        }
+        revokeSkillPermissions(target);
+
+        profile.classId(null);
+        profile.classSelectedAt(0L);
+        profile.switchCooldownUntil(0L);
+        profile.clearResources();
+        profile.clearCooldowns();
+        profile.boundSkills().clear();
+        profile.markDirty();
+        plugin.playerData().save(profile);
+
+        Msg.send(target, "class.reset-notify");
+        plugin.getLogger().info("管理员重置了 " + target.getName() + " 的职业（原：" + profile.classId() + "）。");
+        return Result.ok(Msg.raw("class.reset-done",
+                "player", target.getName(), "old", oldDisplay));
+    }
+
+    /** 登录兜底：被离线重置的玩家登录时，清掉 AuraSkills 里残留的 class_ 修饰符。 */
+    public void scheduleModifierCleanup(Player player) {
+        new BukkitRunnable() {
+            private int attempts = 0;
+
+            @Override
+            public void run() {
+                if (!player.isOnline()) {
+                    cancel();
+                    return;
+                }
+                attempts++;
+                AuraSkillsHook hook = plugin.aura();
+                if (hook.available() && hook.isUserLoaded(player)) {
+                    hook.removeAllClassModifiers(player);
+                    cancel();
+                    return;
+                }
+                if (attempts >= 20) {
+                    cancel();
+                }
+            }
+        }.runTaskTimer(plugin, 1L, 10L);
     }
 
     // ---------------- 修饰符 ----------------

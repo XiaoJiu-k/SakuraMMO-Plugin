@@ -177,6 +177,48 @@ public final class AuraSkillsHook {
         }
     }
 
+    /**
+     * 按任意名字挂单个属性修饰符（天赋等系统用；同名覆盖语义与 AuraSkills 一致）。
+     *
+     * @return true 挂载成功
+     */
+    public boolean applyNamedModifier(Player player, String modifierName, String statId, double value) {
+        if (!ready) {
+            return false;
+        }
+        Object stat = statCache.get(statId.toLowerCase(Locale.ROOT));
+        if (stat == null) {
+            plugin.getLogger().warning("applyNamedModifier：未知属性 " + statId);
+            return false;
+        }
+        try {
+            Object user = user(player);
+            if (user == null) {
+                return false;
+            }
+            mRemoveModifier.invoke(user, modifierName); // 同名先清（幂等）
+            Object modifier = ctorModifier.newInstance(modifierName, stat, value);
+            mAddModifier.invoke(user, modifier);
+            return true;
+        } catch (Throwable t) {
+            plugin.getLogger().log(Level.WARNING, "挂载修饰符 " + modifierName + " 失败", t);
+            return false;
+        }
+    }
+
+    /** 清掉指定前缀的修饰符（talent_ / class_ 等）。 */
+    public int removeModifiersByPrefix(Player player, String prefix) {
+        if (!ready) {
+            return -1;
+        }
+        try {
+            Object user = user(player);
+            return user == null ? -1 : removeByPrefix(user, prefix);
+        } catch (Throwable t) {
+            return -1;
+        }
+    }
+
     public Set<String> modifierNames(Player player) {
         if (!ready) {
             return Collections.emptySet();

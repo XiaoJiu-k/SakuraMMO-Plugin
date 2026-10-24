@@ -8,6 +8,7 @@ website: https://github.com/sakura/sakurammo
 
 # 全部软依赖：任一缺失时插件仍启动，对应功能降级并打 WARN
 softdepend:
+  - InputEngine
   - AuraSkills
   - MythicMobs
   - PlaceholderAPI

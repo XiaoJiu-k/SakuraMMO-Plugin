@@ -3,18 +3,23 @@ package io.sakurammo;
 import io.sakurammo.classsystem.ClassManager;
 import io.sakurammo.command.SakuraCommand;
 import io.sakurammo.config.ConfigManager;
+import io.sakurammo.craft.CraftingManager;
+import io.sakurammo.economy.EconomyManager;
 import io.sakurammo.hook.AuraSkillsHook;
-import io.sakurammo.hook.EconomyBridge;
 import io.sakurammo.hook.MythicMobsHook;
 import io.sakurammo.hook.PlaceholderBootstrap;
-import io.sakurammo.hook.VaultBootstrap;
 import io.sakurammo.hud.HudService;
+import io.sakurammo.instance.InstanceManager;
 import io.sakurammo.listener.CombatListener;
+import io.sakurammo.listener.DungeonListener;
 import io.sakurammo.listener.PlayerListener;
+import io.sakurammo.loot.LootManager;
 import io.sakurammo.menu.MenuManager;
+import io.sakurammo.party.PartyManager;
 import io.sakurammo.player.PlayerDataManager;
 import io.sakurammo.resource.ResourceService;
 import io.sakurammo.skill.SkillService;
+import io.sakurammo.talent.TalentManager;
 import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
@@ -36,8 +41,11 @@ public final class SakuraMMOPlugin extends JavaPlugin {
     private PlayerDataManager playerData;
 
     private AuraSkillsHook aura;
+    private io.sakurammo.hook.KeyBridgeHook keyBridge;
     private MythicMobsHook mythic;
-    private EconomyBridge vault = new EconomyBridge.Noop();
+    private EconomyManager economyManager;
+    private TalentManager talents;
+    private CraftingManager crafting;
 
     private ClassManager classManager;
     private ResourceService resources;
@@ -45,6 +53,9 @@ public final class SakuraMMOPlugin extends JavaPlugin {
     private HudService hud;
     private MenuManager menus;
     private PlayerListener playerListener;
+    private PartyManager parties;
+    private InstanceManager instances;
+    private LootManager loot;
 
     private Object placeholderHandle;
     private boolean placeholderRegistered;
@@ -61,8 +72,10 @@ public final class SakuraMMOPlugin extends JavaPlugin {
         playerData = new PlayerDataManager(this);
 
         aura = new AuraSkillsHook(this);
+        keyBridge = new io.sakurammo.hook.KeyBridgeHook(this);
         mythic = new MythicMobsHook(this);
-        vault = VaultBootstrap.create(this);
+        economyManager = new EconomyManager(this);
+        economyManager.hookVault(); // 外部经济优先；无则注册内置 SakuraEconomy
 
         classManager = new ClassManager(this);
         resources = new ResourceService(this);
@@ -70,11 +83,23 @@ public final class SakuraMMOPlugin extends JavaPlugin {
         hud = new HudService(this);
         menus = new MenuManager(this);
 
+        // 阶段二：队伍 / 副本实例 / 结算
+        parties = new PartyManager(this);
+        loot = new LootManager(this);
+        instances = new InstanceManager(this);
+        // 阶段三：天赋 / 制造
+        talents = new TalentManager(this);
+        crafting = new CraftingManager(this);
+        instances.startupCleanup(); // 兜底：删除宕机残留的 instance_* 世界目录
+        parties.recoverFromCrash(); // 上次非正常结束的副本队伍 → IDLE（玩家背包在其上线时恢复）
+
         registerCommand();
         playerListener = new PlayerListener(this);
         Bukkit.getPluginManager().registerEvents(playerListener, this);
         Bukkit.getPluginManager().registerEvents(new CombatListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new DungeonListener(this), this);
         menus.register();
+        parties.start();
 
         placeholderHandle = PlaceholderBootstrap.register(this);
         placeholderRegistered = placeholderHandle != null;
@@ -103,6 +128,13 @@ public final class SakuraMMOPlugin extends JavaPlugin {
             autoSaveTask.cancel();
             autoSaveTask = null;
         }
+        if (parties != null) {
+            parties.stop();
+        }
+        // 副本兜底：还在线的副本玩家先恢复背包再停服（世界目录交给下次启动清理）
+        if (instances != null) {
+            instances.shutdownRestore();
+        }
         if (resources != null) {
             resources.stop();
         }
@@ -112,6 +144,12 @@ public final class SakuraMMOPlugin extends JavaPlugin {
         if (playerData != null) {
             playerData.saveAll();
             getLogger().info("玩家数据已保存（" + playerData.cachedCount() + " 份）。");
+        }
+        if (parties != null) {
+            parties.saveNow();
+        }
+        if (economyManager != null) {
+            economyManager.saveNow();
         }
         PlaceholderBootstrap.unregister(placeholderHandle);
         placeholderHandle = null;
@@ -162,6 +200,10 @@ public final class SakuraMMOPlugin extends JavaPlugin {
         return playerData;
     }
 
+    public io.sakurammo.hook.KeyBridgeHook keyBridge() {
+        return keyBridge;
+    }
+
     public AuraSkillsHook aura() {
         return aura;
     }
@@ -170,8 +212,16 @@ public final class SakuraMMOPlugin extends JavaPlugin {
         return mythic;
     }
 
-    public EconomyBridge vault() {
-        return vault;
+    public EconomyManager economy() {
+        return economyManager;
+    }
+
+    public TalentManager talents() {
+        return talents;
+    }
+
+    public CraftingManager crafting() {
+        return crafting;
     }
 
     public ClassManager classManager() {
@@ -192,6 +242,18 @@ public final class SakuraMMOPlugin extends JavaPlugin {
 
     public MenuManager menus() {
         return menus;
+    }
+
+    public PartyManager parties() {
+        return parties;
+    }
+
+    public InstanceManager instances() {
+        return instances;
+    }
+
+    public LootManager loot() {
+        return loot;
     }
 
     public PlayerListener playerListener() {

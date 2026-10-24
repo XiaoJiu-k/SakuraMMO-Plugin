@@ -67,9 +67,22 @@ Paper 1.21.4-232 / Java 21
 | `/sm class select <id>` | `sakurammo.use` | 首次选择（免费） |
 | `/sm class switch <id>` | `sakurammo.use` | 切换（默认 24h 冷却 + 可选费用） |
 | `/sm class info [player]` | `sakurammo.use` | 职业 / 属性 / 资源 / 技能一览 |
+| `/sm class reset <player>` | `sakurammo.admin` | 撤销玩家职业（清属性/资源/冷却/绑定，可重新选择；支持离线档案） |
 | `/sm resource` | `sakurammo.use` | 查看当前职业所有资源 |
 | `/sm resource set <p> <res> <v>` | `sakurammo.admin` | 调试用 |
-| `/sm bind <skillId>` | `sakurammo.use` | 绑定技能到**主手物品所在槽位** |
+| `/sm menu` / `/sm skills` | `sakurammo.use` | 打开菜单（F 键同）：角色面板 / 技能绑定（Shift+1~4）/ 副本入口 |
+| `/sm bind <skillId> <1\|2\|3\|4>` | `sakurammo.use` | 技能绑定到 Shift+1~4 槽位 |
+| `/sm unbind <1\|2\|3\|4>` | `sakurammo.use` | 解绑按键 |
+| `/sm binds` | `sakurammo.use` | 列出按键绑定与冷却 |
+| `/sm cast slot <1\|2\|3\|4>` | `sakurammo.use` | 按键施法命令入口（Shift+1~4 的命令形态） |
+| `/sm party create` | `sakurammo.use` | 创建队伍（上限 `party.max-members`，默认 5 人） |
+| `/sm party invite <玩家>` / `accept` | `sakurammo.use` | 邀请（60 秒有效）/ 接受入队（仅队长可邀请） |
+| `/sm party leave` / `kick <玩家>` / `disband` | `sakurammo.use` | 离队 / 踢人（仅队长）/ 解散（仅队长） |
+| `/sm party info` | `sakurammo.use` | 查看队伍成员与状态 |
+| `/sm dungeon start <id>` | `sakurammo.use` | 队长开本：复制模板世界为 `instance_<队伍id>` 并传送 |
+| `/sm dungeon leave` / `info` | `sakurammo.use` | 离本（恢复主世界背包与奖励邮箱）/ 查看进度 |
+| `/sm dungeon valve <1\|2>` | `sakurammo.use` | 后备开阀通道（等价于扳动阀门拉杆） |
+| `/sm dungeon stop` | `sakurammo.admin` | 强制结束当前副本实例 |
 | `/sm unbind` | `sakurammo.use` | 解除当前槽位绑定 |
 | `/sm cast <skillId>` | `sakurammo.use` | 直接施放，绕过绑定（调试 / 宏用） |
 | `/sm reload` | `sakurammo.admin` | 只重载配置，不重载玩家数据 |
@@ -263,7 +276,9 @@ AuraSkills 的修饰符存在 `Map<String, StatModifier>` 里，**名字就是�
 | 装备限制只作文档约定 | `equipment.allowed/forbidden` 不拦截，P1 做 |
 | 等级 / 经验 / 专精 | 字段已持久化，逻辑留 P1 |
 | 法术攻击 / 治疗强度 / 护甲穿透 / 格挡 / 冷却缩减 / 抗暴 | AuraSkills 没有这些属性，`stats:` 里写会被 WARN 并忽略 |
-| 绑定按槽位 + 材质 | 换武器不触发；同槽位换回该材质会恢复 |
+| **按键全原生，无需模组** | v3 布局：**Shift+快捷栏1/2/3/4 = 技能槽1-4**（`PlayerItemHeldEvent`，空手可用，只拦已绑定槽）；**F 键 = 打开菜单**（副手交换拦截，潜行+F 保留原版交换）；V 键（装 InputEngine 后）= 菜单直开。旧绑定（Q/E/R/T 或 R/T/F/G）按槽位顺序自动迁移（`bind-layout`） |
+| InputEngine 监听未接入 | 已做存在性检测（softdepend）；PlayerKeyPressEvent 监听属 P1 |
+| 绑定按键模型 | R/T/F/G 四槽（`skill-binds`），不跟物品；旧 `bound-skills` 槽 0 迁移一次，v1 Q/E/R/T 布局按槽位顺序自动迁移（`bind-layout`） |
 | ActionBar 与 AuraSkills 冲突 | 见「配置」小节，二选一 |
 | 右键触发有两条事件通道 | 右键方块/空气走 PlayerInteractEvent，右键**实体**走 PlayerInteractEntityEvent，两条都接了 |
 | 升级不覆盖 skills.yml / classes/*.yml | 这两个是内容文件，saveResource 只在首次生成；新增的 icon: 等字段要手动同步。messages_*.yml 会自动补齐缺失键 |
@@ -286,3 +301,50 @@ src/main/java/io/sakurammo/
 ├── skill/SkillService          绑定 / 五项校验 / 调 MythicMobs
 └── util/                       Msg / Text / TimeFormat
 ```
+
+## 阶段二 · 队伍 / 副本 / 结算（v2.0.0）
+
+### 副本「黑铁王庭」流程
+
+```
+/sm party create → invite → accept（≥2 人在线）
+  → 队长 /sm dungeon start blackiron
+      ① 模板世界 template_blackiron 不存在时自动生成超平坦竞技场并按实测坐标重写 dungeons/blackiron.yml
+      ② 异步复制世界 → instance_<队伍id前8位> → 传送全队（进本背包快照+清空隔离）
+      ③ 关门（铁栏杆）+ 布置三 Boss（MythicMobs：IronJawGatekeeper / AquimixWarden / ForgemasterVhal）
+  → 击杀 Boss1 → 大门打开
+  → 两人分别扳动两侧拉杆阀门（或 /sm dungeon valve 1 / 2）→ Boss2 解除无敌
+  → 击杀 Boss2 → Boss3 解除无敌；Boss3 在 70% / 35% 血量转阶段狂暴
+  → 击杀 Boss3 → 生成通关奖励箱 → 每人点击领取（run-id 幂等，重复点击被拒）
+  → /sm dungeon leave → 传回主城、恢复主世界背包、奖励邮箱发放
+  → 全员离场 5 秒后世界卸载并异步删除目录
+```
+
+### 数据安全（红线）
+
+- **奖励幂等**：领取顺序 = 标记 `claimed-rewards`（run-id）+ 奖励写入邮箱 → **阻塞落盘** → 出本时发放；任何时刻宕机/强杀都不会重复领取或丢失标记
+- **背包隔离**：进本快照主世界背包（41 格 Base64）并清空；出本丢弃副本内物品、恢复快照、发放邮箱，一次原子落盘
+- **崩溃兜底**：启动时删除所有 `instance_*` 残留世界；非 IDLE 队伍重置为 IDLE；断线玩家的 `active-run` 在其上线时恢复（副本还在 → 传送回本；已结束 → 恢复背包回城）
+- **离线保留**：队伍成员离线保留 5 分钟（可配）；副本进行中的离线成员保留至副本结束
+- **奖励邮箱**：物品序列化存入 `playerdata/<uuid>.yml` 的 `reward-mailbox`，发放后清除；重复上线不会重复发放
+
+### 菜单结构（v2.1.1）
+
+```
+F（或 /sm menu）
+ └─ 主菜单（只有两个入口）：职业(11) · 副本(15) · 关闭(22)
+     ├─ 职业 → 我的职业面板：职业(4) · 资源(13) · 技能(19-23，点击进按键选择)
+     │        · 按键绑定概览(31) · 切换职业(40) · 返回主菜单(23) · 关闭(49)
+     │        └─ 技能绑定菜单：Shift+1~4 键槽(10-13) + 技能列表(19+，点击选键)
+     └─ 副本 → 副本菜单：队伍/副本状态(4) · 副本列表(10-16，队长点击开本)
+              · 离开副本(21，副本中，传送回 0,69,0 并恢复快照+带出底材) · 返回主菜单(23)
+    （副本 1~5 人可打：无队伍单人点击会自动创建一人队伍，副本结束自动解散）
+```
+
+施法：潜行后按快捷栏 1/2/3/4（对应槽位 1-4）；命令 `/sm cast slot <1-4>` 等价。
+
+## 阶段三 · 天赋 / 制造 / 经济（v3.0.0）
+
+- **天赋树**：`/sm talent` 或 职业面板→天赋。7 职业×2 分支×3 节点；升级（击杀/副本经验，曲线 100+50×level）每 3 级 1 点（Lv.10 起，60 级 17 点）；左键加点、右键减点、洗点 500 金币全额返还。效果通道：stat→AuraSkills modifier（talent_ 前缀，唯一聚合）；冷却/消耗→施法折减；资源上限/回复→ResourceService；技能伤害→施法窗口补差（MythicMobs ignorearmor 技能事件修改无效，采用 MONITOR 补差）。
+- **制造**：`/sm craft` 或 职业面板→制造。底材产自副本 Boss（Boss1 黑铁锭 / Boss2 魔晶 / Boss3 暗核+魔晶）**且出本随身带出**（隔离豁免，其余副本内物品仍丢弃），配方=底材+金币手续费，成品带原版 attribute modifiers 与 PDC 标记。防刷金：成品回收 25%、底材不可卖。
+- **经济**：内置 SakuraEconomy（Vault provider，余额 economy.yml；有外部经济时自动让位）。产出=击杀/Boss；消耗=洗点/手续费/卖出差价。`/sm money`、`/sm sell`、PAPI `%sakurammo_money%`。

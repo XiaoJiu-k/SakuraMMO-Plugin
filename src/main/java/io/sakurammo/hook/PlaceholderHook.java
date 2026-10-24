@@ -89,6 +89,27 @@ public final class PlaceholderHook extends PlaceholderExpansion {
                 break;
         }
 
+        // 阶段三：经济与天赋
+        if (key.equals("money")) {
+            return io.sakurammo.util.Text.number(plugin.economy().balanceOf(offlinePlayer));
+        }
+        if (key.equals("talent_points")) {
+            return String.valueOf(profile.talentPoints());
+        }
+        if (key.equals("talent_level")) {
+            return String.valueOf(profile.level());
+        }
+        if (key.equals("talent_cd")) {
+            return io.sakurammo.util.Text.number(plugin.talents().cooldownReduction(profile));
+        }
+        if (key.equals("talent_cost")) {
+            return io.sakurammo.util.Text.number(plugin.talents().costReduction(profile));
+        }
+        if (key.startsWith("talent_mult_")) {
+            // %sakurammo_talent_mult_<skillid>% → 1.0 基准倍率（供 MythicMobs 公式读取）
+            return io.sakurammo.util.Text.number(
+                    plugin.talents().skillMultiplier(profile, key.substring("talent_mult_".length())));
+        }
         if (key.startsWith("resource_")) {
             String rest = key.substring("resource_".length());
             boolean wantMax = rest.endsWith("_max");

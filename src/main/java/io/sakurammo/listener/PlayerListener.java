@@ -1,54 +1,58 @@
 package io.sakurammo.listener;
 
 import io.sakurammo.SakuraMMOPlugin;
+import io.sakurammo.config.ClassDefinition;
+import io.sakurammo.config.MainConfig;
+import io.sakurammo.config.ResourceDefinition;
 import io.sakurammo.config.SkillDefinition;
 import io.sakurammo.player.PlayerProfile;
-import io.sakurammo.player.SkillBinding;
 import io.sakurammo.skill.SkillService;
+import io.sakurammo.util.Msg;
 import io.sakurammo.util.Text;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
-import org.bukkit.Material;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.player.PlayerInteractEntityEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.event.player.PlayerSwapHandItemsEvent;
+
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 玩家生命周期 + 技能触发入口。
- * <p>
- * 注意要同时监听两种事件：
+ * 玩家生命周期 + 技能触发入口（v3 按键布局：Shift+1/2/3/4 施法，F 菜单）。
  * <ul>
- *   <li>{@link PlayerInteractEvent} —— 右键空气 / 方块、左键空气 / 方块</li>
- *   <li>{@link PlayerInteractEntityEvent} —— 右键实体（打怪、点训练假人），原版不会触发前一个事件</li>
+ *   <li>Shift + 快捷栏 1/2/3/4 → 施放技能槽 1-4：{@link PlayerItemHeldEvent}，
+ *       取消切槽并施法（只拦已绑定槽，5-9 放行）——原版客户端 100% 可触发</li>
+ *   <li>F 键（副手交换）→ 打开菜单；潜行 + F 保留原版副手交换（换手出口）</li>
+ *   <li>V 键 → 菜单（KeyBridgeHook 的 InputEngine 反射监听，装模组后可用）</li>
  * </ul>
  */
 public final class PlayerListener implements Listener {
 
-    private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacySection();
-
     private final SakuraMMOPlugin plugin;
 
-    /** 诊断计数：证明交互事件到底有没有到达插件 */
-    private int interactCount;
-    private int entityInteractCount;
+    /** 诊断计数：F 键开菜单次数 / Shift 组合键施法次数 */
+    private int menuCount;
+    private int comboCount;
+
+    /** 同一玩家 150ms 内的重复施法去重（多触发路径防双发）。 */
+    private final Map<UUID, Long> lastCast = new ConcurrentHashMap<>();
 
     public PlayerListener(SakuraMMOPlugin plugin) {
         this.plugin = plugin;
     }
 
-    public int interactCount() {
-        return interactCount;
+    public int menuCount() {
+        return menuCount;
     }
 
-    public int entityInteractCount() {
-        return entityInteractCount;
+    public int comboCount() {
+        return comboCount;
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -62,96 +66,109 @@ public final class PlayerListener implements Listener {
         }
         if (profile.hasClass()) {
             plugin.classManager().scheduleApplyOnJoin(player);
+        } else if (plugin.aura().available()) {
+            // 无职业登录（如被管理员离线重置）→ 清掉 AuraSkills 残留的 class_ 修饰符
+            plugin.classManager().scheduleModifierCleanup(player);
         }
+        // 阶段二：队伍在线标记 + 副本断线重连（还在本内→传送回去；本已结束→恢复背包回城）
+        plugin.parties().markOnline(player.getUniqueId());
+        plugin.instances().handleRejoin(player);
+        // 阶段三：天赋 modifier 登录重挂（任务书坑表：离线修改上线要生效）
+        plugin.talents().scheduleApplyOnJoin(player);
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
+        plugin.hud().clearOverride(player.getUniqueId());
         plugin.classManager().revokeSkillPermissions(player);
+        plugin.parties().markOffline(player.getUniqueId());
+        plugin.instances().handleQuit(player);
+        plugin.talents().clearCasts(player.getUniqueId());
         plugin.playerData().unload(player.getUniqueId());
     }
 
-    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-    public void onInteract(PlayerInteractEvent event) {
-        interactCount++;
-        if (event.getHand() != EquipmentSlot.HAND) {
+    /**
+     * F 键（副手交换）打开菜单。潜行 + F 保留原版副手交换（给需要换手的玩家留出口）。
+     * V 键的菜单入口在 KeyBridgeHook（装桥接模组后直发）。
+     */
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onSwapHands(PlayerSwapHandItemsEvent event) {
+        MainConfig config = plugin.config().main();
+        if (!config.menuEnabled() || !config.menuInterceptSwap()) {
             return;
         }
-        Action action = event.getAction();
-        boolean rightClick = action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK;
-        boolean leftClick = action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK;
-        if (!rightClick && !leftClick) {
-            return;
+        Player player = event.getPlayer();
+        if (config.menuShiftBypass() && player.isSneaking()) {
+            return; // 潜行 + F：原版副手交换
         }
-        boolean onBlock = action == Action.RIGHT_CLICK_BLOCK || action == Action.LEFT_CLICK_BLOCK;
-        if (tryCast(event.getPlayer(), rightClick, leftClick, onBlock) && onBlock) {
-            // 只拦「对方块」：避免技能触发时顺手放了方块。
-            // 空气右键不拦，否则弓类武器会因为绑定技能而无法蓄力。
-            event.setCancelled(true);
-        }
-    }
-
-    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-    public void onInteractEntity(PlayerInteractEntityEvent event) {
-        entityInteractCount++;
-        if (event.getHand() != EquipmentSlot.HAND) {
-            return;
-        }
-        if (tryCast(event.getPlayer(), true, false, false)) {
-            event.setCancelled(true);
-        }
+        event.setCancelled(true);
+        menuCount++;
+        // 下一 tick 再开，避免和副手交换动作在同一 tick 打架
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            if (player.isOnline()) {
+                plugin.menus().open(player);
+            }
+        });
     }
 
     /**
-     * 主手绑定校验 + 施法。
-     *
-     * @return true 表示技能确实施放成功（调用方据此决定是否取消原版行为）
+     * Shift + 快捷栏 1/2/3/4 → 技能槽 1-4（原版客户端的技能触发，空手可用）。
+     * 只拦截「绑定了技能的槽」；5-9 与未绑定槽保持原版切槽。
      */
-    private boolean tryCast(Player player, boolean rightClick, boolean leftClick, boolean onBlock) {
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onItemHeld(PlayerItemHeldEvent event) {
+        if (!plugin.config().main().keybindShiftHotbarEnabled()) {
+            return;
+        }
+        Player player = event.getPlayer();
+        if (!player.isSneaking()) {
+            return;
+        }
+        int slot = event.getNewSlot();
+        if (slot < 0 || slot >= PlayerProfile.SKILL_KEYS.size()) {
+            return; // 快捷栏 5-9：正常切槽
+        }
+        String key = PlayerProfile.SKILL_KEYS.get(slot);
         PlayerProfile profile = plugin.playerData().get(player.getUniqueId());
         if (profile == null || !profile.hasClass()) {
-            return false;
+            return;
         }
-
-        int slot = player.getInventory().getHeldItemSlot();
-        SkillBinding binding = profile.boundSkills().get(slot);
-        if (binding == null) {
-            dbg(player, "槽位 " + slot + " 没有绑定技能");
-            return false;
+        String skillId = profile.skillBind(key);
+        if (skillId == null) {
+            return; // 该槽未绑定 → 正常切槽
         }
-        SkillDefinition definition = plugin.config().skill(binding.skillId());
-        if (definition == null) {
-            dbg(player, "绑定指向的技能 " + binding.skillId() + " 不存在");
-            return false;
+        event.setCancelled(true);
+        comboCount++;
+        if (plugin.config().main().debug()) {
+            plugin.getLogger().info("[debug] " + player.getName() + " Shift+" + key
+                    + " 触发：" + skillId);
         }
-        if (!definition.trigger().matches(rightClick, leftClick, onBlock)) {
-            dbg(player, definition.id() + " 触发方式不匹配（trigger=" + definition.trigger()
-                    + " right=" + rightClick + " left=" + leftClick + " block=" + onBlock + "）");
-            return false;
-        }
-
-        // 主手物品必须和绑定时一致，否则视为「换武器了」，不触发也不刷屏
-        ItemStack hand = player.getInventory().getItemInMainHand();
-        Material material = hand == null ? Material.AIR : hand.getType();
-        if (binding.material() != null && material != binding.material()) {
-            dbg(player, "主手材质不匹配：需要 " + binding.material() + "，当前 " + material);
-            return false;
-        }
-
-        SkillService.Result result = plugin.skills().cast(player, definition);
-        if (result.ok()) {
-            return true;
-        }
-        if (result.message() != null) {
-            player.sendActionBar(LEGACY.deserialize(Text.color(result.message())));
-        }
-        return false;
+        castBound(player, skillId, SkillService.keyDisplay(key));
     }
 
-    private void dbg(Player player, String message) {
-        if (plugin.config().main().debug()) {
-            plugin.getLogger().info("[debug] " + player.getName() + " 触发检查：" + message);
+    /** 按键、组合键与 /sm cast slot 共用的施放入口：查技能 → 五项校验 → MythicMobs。 */
+    public void castBound(Player player, String skillId, String keyLabel) {
+        long now = System.currentTimeMillis();
+        Long last = lastCast.get(player.getUniqueId());
+        if (last != null && now - last < 150L) {
+            return; // 多触发路径去重
+        }
+        lastCast.put(player.getUniqueId(), now);
+
+        SkillDefinition definition = plugin.config().skill(skillId);
+        if (definition == null) {
+            plugin.hud().castMessage(player, Msg.raw("skill.unknown", "id", skillId), 2);
+            return;
+        }
+        SkillService.Result result = plugin.skills().cast(player, definition);
+        if (result.ok()) {
+            // 行 1 = 施法提示（独立淡出）；行 2 资源条由 HUD 周期渲染，不再抢占拼接
+            plugin.hud().recordSkillCast(player, definition.id(), definition.displayName());
+            plugin.hud().castMessage(player, Msg.raw("hud.cast-ok",
+                    "skill", "[" + keyLabel + "] " + definition.displayName(), "resource", ""), 2);
+        } else if (result.message() != null) {
+            plugin.hud().castMessage(player, "[" + keyLabel + "] " + result.message(), 2);
         }
     }
 }

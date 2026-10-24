@@ -22,6 +22,8 @@ public abstract class Menu implements InventoryHolder {
     protected final Player player;
     protected final Inventory inventory;
     private final Map<Integer, Consumer<Player>> actions = new HashMap<>();
+    /** 最近一次点击的类型（子类在 action 里读，左键/右键语义）。 */
+    protected org.bukkit.event.inventory.ClickType clickType;
 
     protected Menu(SakuraMMOPlugin plugin, Player player, int rows, String title) {
         this.plugin = plugin;
@@ -40,6 +42,11 @@ public abstract class Menu implements InventoryHolder {
     }
 
     public void click(int slot) {
+        click(slot, org.bukkit.event.inventory.ClickType.LEFT);
+    }
+
+    public void click(int slot, org.bukkit.event.inventory.ClickType type) {
+        this.clickType = type;
         Consumer<Player> action = actions.get(slot);
         if (action != null) {
             action.accept(player);

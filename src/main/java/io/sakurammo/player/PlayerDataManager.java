@@ -40,6 +40,83 @@ public final class PlayerDataManager {
         return new File(dir, uuid + ".yml");
     }
 
+    /** 按玩家名找离线档案（扫描 name 字段），找不到返回 null。 */
+    public File findOfflineFile(String name) {
+        File found = scanByName(name);
+        return found;
+    }
+
+    /** 按玩家名找离线玩家的 UUID（扫描 playerdata 的 name 字段），找不到返回 null。 */
+    public UUID findOfflineUuid(String name) {
+        File file = scanByName(name);
+        if (file == null) {
+            return null;
+        }
+        try {
+            String uuid = YamlConfiguration.loadConfiguration(file).getString("uuid");
+            return uuid == null ? null : UUID.fromString(uuid);
+        } catch (Exception ex) {
+            return null;
+        }
+    }
+
+    private File scanByName(String name) {
+        File[] files = dir.listFiles((d, n) -> n.endsWith(".yml"));
+        if (files == null) {
+            return null;
+        }
+        String wanted = name.toLowerCase(java.util.Locale.ROOT);
+        for (File file : files) {
+            try {
+                if (file.getName().endsWith(".tmp")) {
+                    continue;
+                }
+                String stored = YamlConfiguration.loadConfiguration(file).getString("name");
+                if (stored != null && stored.toLowerCase(java.util.Locale.ROOT).equals(wanted)) {
+                    return file;
+                }
+            } catch (Exception ignored) {
+                // 跳过读不了的文件
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 离线重置：清档案里的职业相关字段（class / 冷却 / 资源 / 绑定），
+     * 保留 name/level/experience 等成长字段。原子写回。
+     *
+     * @return 重置前的职业 id（档案里没有职业则返回 null，不写文件）
+     */
+    public String resetFile(File file) {
+        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
+        String oldClass = yaml.getString("class");
+        if (oldClass == null || oldClass.isBlank()) {
+            return null;
+        }
+        yaml.set("class", null);
+        yaml.set("class-selected-at", null);
+        yaml.set("switch-cooldown-until", null);
+        yaml.set("resources", null);
+        yaml.set("cooldowns", null);
+        yaml.set("bound-skills", null);
+        Path targetPath = file.toPath();
+        Path tmpPath = targetPath.resolveSibling(file.getName() + ".tmp");
+        try {
+            yaml.save(tmpPath.toFile());
+            try {
+                Files.move(tmpPath, targetPath, StandardCopyOption.REPLACE_EXISTING,
+                        StandardCopyOption.ATOMIC_MOVE);
+            } catch (AtomicMoveNotSupportedException ex) {
+                Files.move(tmpPath, targetPath, StandardCopyOption.REPLACE_EXISTING);
+            }
+            return oldClass;
+        } catch (IOException ex) {
+            plugin.getLogger().log(Level.SEVERE, "离线重置玩家档案失败：" + file.getName(), ex);
+            return null;
+        }
+    }
+
     public PlayerProfile get(UUID uuid) {
         return cache.get(uuid);
     }
@@ -100,6 +177,46 @@ public final class PlayerDataManager {
                     }
                 }
             }
+            // P0.6：skill-binds（按键 -> skillId）
+            ConfigurationSection binds = yaml.getConfigurationSection("skill-binds");
+            if (binds != null) {
+                for (String key : binds.getKeys(false)) {
+                    String skillId = binds.getString(key);
+                    if (skillId != null && !skillId.isBlank() && !"null".equals(skillId)) {
+                        profile.skillBinds().put(key.toUpperCase(java.util.Locale.ROOT), skillId);
+                    }
+                }
+            }
+            profile.migratedFromBoundSkills(yaml.getBoolean("migrated-from-bound-skills", false));
+            // 旧槽位绑定迁移（仅一次）：bound-skills 的 "0" → 当前布局槽位 1
+            if (!profile.migratedFromBoundSkills() && !profile.boundSkills().isEmpty()) {
+                SkillBinding legacy = profile.boundSkills().get(0);
+                if (legacy != null && profile.skillBind(PlayerProfile.SKILL_KEYS.get(0)) == null) {
+                    profile.skillBind(PlayerProfile.SKILL_KEYS.get(0), legacy.skillId());
+                    plugin.getLogger().info("玩家 " + profile.name() + " 的旧槽位绑定已迁移：0 → "
+                            + PlayerProfile.SKILL_KEYS.get(0) + "（" + legacy.skillId() + "）");
+                }
+                profile.migratedFromBoundSkills(true);
+            }
+            // 按键布局迁移：v1(Q/E/R/T) / v2(R/T/F/G) → v3(Shift+1~4)，按槽位顺序映射，仅一次
+            int layout = yaml.getInt("bind-layout",
+                    profile.skillBinds().isEmpty() ? 3 : 1);
+            if (layout < 3) {
+                java.util.List<String> legacyKeys = layout == 2
+                        ? PlayerProfile.LEGACY_KEYS_V2 : PlayerProfile.LEGACY_KEYS_V1;
+                java.util.Map<String, String> legacyBinds = new java.util.LinkedHashMap<>(profile.skillBinds());
+                profile.skillBinds().clear();
+                for (int i = 0; i < PlayerProfile.SKILL_KEYS.size() && i < legacyKeys.size(); i++) {
+                    String skillId = legacyBinds.get(legacyKeys.get(i));
+                    if (skillId != null) {
+                        profile.skillBinds().put(PlayerProfile.SKILL_KEYS.get(i), skillId);
+                    }
+                }
+                profile.markDirty();
+                plugin.getLogger().info("玩家 " + profile.name() + " 的按键布局已迁移："
+                        + legacyKeys + " → " + PlayerProfile.SKILL_KEYS + "（" + profile.skillBinds() + "）");
+            }
+            profile.bindLayoutVersion(3);
             profile.level(yaml.getInt("level", 1));
             profile.experience(yaml.getLong("experience", 0L));
             String spec = yaml.getString("specialization");
@@ -110,6 +227,25 @@ public final class PlayerDataManager {
             if (snap != null) {
                 for (String key : snap.getKeys(false)) {
                     profile.skillSnapshots().put(key, snap.getInt(key));
+                }
+            }
+            // 阶段二：副本数据（背包快照 / run-id / 幂等领取 / 奖励邮箱）
+            String inv = yaml.getString("inventory-snapshot");
+            if (inv != null && !inv.isBlank() && !"null".equals(inv)) {
+                profile.inventorySnapshot(inv);
+            }
+            String run = yaml.getString("active-run");
+            if (run != null && !run.isBlank() && !"null".equals(run)) {
+                profile.activeRun(run);
+            }
+            profile.claimedRewards().addAll(yaml.getStringList("claimed-rewards"));
+            profile.rewardMailbox().addAll(yaml.getStringList("reward-mailbox"));
+            // 阶段三：天赋
+            profile.talentPoints(yaml.getInt("talent-points", 0));
+            ConfigurationSection tal = yaml.getConfigurationSection("talents");
+            if (tal != null) {
+                for (String key : tal.getKeys(false)) {
+                    profile.talents().put(key, tal.getInt(key));
                 }
             }
             profile.clean();
@@ -137,17 +273,27 @@ public final class PlayerDataManager {
                 yaml.set("cooldowns." + entry.getKey(), entry.getValue());
             }
         }
-        for (Map.Entry<Integer, SkillBinding> entry : profile.boundSkills().entrySet()) {
-            SkillBinding binding = entry.getValue();
-            yaml.set("bound-skills." + entry.getKey() + ".skill", binding.skillId());
-            yaml.set("bound-skills." + entry.getKey() + ".material",
-                    binding.material() == null ? null : binding.material().name());
+        // P0.6：只写 skill-binds；bound-skills 不再写入（读取兼容保留在 load）
+        for (Map.Entry<String, String> entry : profile.skillBinds().entrySet()) {
+            yaml.set("skill-binds." + entry.getKey(), entry.getValue());
         }
+        yaml.set("bind-layout", profile.bindLayoutVersion());
+        yaml.set("migrated-from-bound-skills", profile.migratedFromBoundSkills() ? true : null);
         yaml.set("level", profile.level());
         yaml.set("experience", profile.experience());
         yaml.set("specialization", profile.specialization());
         for (Map.Entry<String, Integer> entry : profile.skillSnapshots().entrySet()) {
             yaml.set("skill-snapshots." + entry.getKey(), entry.getValue());
+        }
+        yaml.set("inventory-snapshot", profile.inventorySnapshot());
+        yaml.set("active-run", profile.activeRun());
+        yaml.set("claimed-rewards", profile.claimedRewards().isEmpty() ? null : profile.claimedRewards());
+        yaml.set("reward-mailbox", profile.rewardMailbox().isEmpty() ? null : profile.rewardMailbox());
+        yaml.set("talent-points", profile.talentPoints());
+        if (!profile.talents().isEmpty()) {
+            for (Map.Entry<String, Integer> entry : profile.talents().entrySet()) {
+                yaml.set("talents." + entry.getKey(), entry.getValue());
+            }
         }
 
         try {

@@ -25,22 +25,59 @@ hud:
   # 刷新间隔（tick）。20 tick = 1 秒
   update-interval-ticks: 10
   # 可用占位符：{display} {current} {max} {percent} {class} {class_display} {resource}
+  #              {health}（当前血量取整） {max_health}（血量上限取整）
   # {display} 取 classes/<id>.yml 里 resources.<res>.display-name（自带颜色）
-  format: "&b{display} &f{current}&7/&f{max}"
+  # 两行渲染：行1=施法提示（独立淡出，不闪烁）；行2=资源行。
+  # 可用占位符：{display} {current} {max} {percent} {class} {class_display} {resource}
+  #             {health} {max_health} {skill_cd}（Shift+1~4 全部绑定技能的冷却/就绪，含分隔符）
+  format: "{display} &f{current}&7/&f{max} &8| &c❤{health}&7/&f{max_health}{skill_cd}"
 
 resource:
   # 资源自然恢复的 tick 间隔。10 tick = 0.5 秒（任务书 §3 P0-2 要求 0.5s）
   tick-interval-ticks: 10
 
 menu:
-  # 角色面板菜单（按 F 打开）
+  # 菜单总开关（关掉后 F / /sm menu 都不再打开菜单）
   enabled: true
-  # 拦截「F 交换副手」并改为打开菜单。设为 false 则 F 恢复原版行为，只能用 /sm menu 打开
+  # 拦截「F 副手交换」并改为打开菜单。潜行 + F 保留原版副手交换（shift-bypass）
   intercept-swap: true
-  # 潜行时按 F 保持原版副手交换（给需要频繁换副手的玩家留的出口）
   shift-bypass: true
   # 菜单空位填充物
   filler: GRAY_STAINED_GLASS_PANE
 
+# 技能按键（v3：Shift+1/2/3/4）
+keybinds:
+  # 潜行 + 快捷栏 1/2/3/4 → 技能槽 1-4（只拦截绑定了技能的槽；5-9 与空槽正常切槽）。
+  # 原版客户端原生可用，无需任何模组；桥接模组（InputEngine）只是额外的直按键路径。
+  shift-hotbar:
+    enabled: true
+
+# ==================== 阶段二：队伍 ====================
+party:
+  # 队伍人数上限
+  max-members: 5
+  # 离线保留时长（分钟），超时自动移出队伍；副本进行中的成员不受此限制
+  offline-kick-minutes: 5
+
+# ==================== 阶段二：副本 ====================
+dungeon:
+  # 撤离后延迟多少秒卸载并删除实例世界
+  cleanup-delay-seconds: 5
+  # 模板世界不存在时是否自动生成超平坦竞技场并按实测坐标重写副本配置
+  auto-create-template: true
+
 # 调试模式：控制台输出 modifier 应用 / 技能施放细节
 debug: false
+
+# ==================== 阶段三：经济 ====================
+economy:
+  # 普通怪击杀奖励区间（金币）
+  kill-money-min: 2
+  kill-money-max: 6
+  # 副本 Boss 基准奖励区间（实际按 Boss 序号 ×1.0/1.2/1.5）
+  boss-money-min: 60
+  boss-money-max: 150
+  # 制成品卖出回收率（防刷金：配方价 × 此值；底材不可卖）
+  sell-refund-rate: 0.25
+  # 普通怪击杀经验
+  xp-per-kill: 15

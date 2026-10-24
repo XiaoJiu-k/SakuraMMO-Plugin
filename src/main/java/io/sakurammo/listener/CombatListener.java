@@ -11,8 +11,11 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.projectiles.ProjectileSource;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 /**
- * 战斗事件 → 资源增益（受击 / 攻击 / 击杀）。
+ * 战斗事件：资源增益（受击 / 攻击 / 击杀）、击杀经验与金币（阶段三）、
+ * 天赋「技能伤害倍率」的后处理放大（施法窗口内）。
  */
 public final class CombatListener implements Listener {
 
@@ -29,6 +32,60 @@ public final class CombatListener implements Listener {
         }
     }
 
+    /**
+     * 天赋技能伤害倍率（阶段三）：施法窗口内的玩家伤害按倍率补差。
+     * <p>
+     * 为什么在 MONITOR 直接补差而不是改事件伤害：本服技能用 MythicMobs
+     * {@code damage{ignorearmor=true}}（阶段一为数值精确选定），它走原生直扣通道，
+     * 事件里 {@code setDamage} 的修改会被无视。这里在事件结算后按
+     * {@code finalDamage × (倍率-1)} 直接补一段归因于施法者的伤害（可击杀、可触发死亡掉落）；
+     * {@code applying} 护栏防补差伤害再次进入本监听造成递归。
+     */
+    private final java.util.Set<java.util.UUID> applying = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onSkillDamageMultiplier(EntityDamageByEntityEvent event) {
+        Player attacker = resolveAttacker(event);
+        if (attacker == null) {
+            return;
+        }
+        double multiplier = plugin.talents().activeMultiplier(attacker);
+        if (multiplier <= 1.0D) {
+            return;
+        }
+        if (!(event.getEntity() instanceof org.bukkit.entity.LivingEntity living) || living.isDead()) {
+            return;
+        }
+        if (!applying.add(living.getUniqueId())) {
+            return; // 补差伤害的嵌套事件，不再放大
+        }
+        try {
+            // MythicMobs ignorearmor 技能会取消事件并按原始伤害直扣（事件值仍是原伤害量），
+            // 因此取消与否都按 finalDamage 补差
+            double base = event.getFinalDamage();
+            if (base <= 0.0D) {
+                return;
+            }
+            double extra = base * (multiplier - 1.0D);
+            if (extra <= 0.0D) {
+                return;
+            }
+            if (plugin.config().main().debug()) {
+                plugin.getLogger().info("[debug] 技能倍率补差 " + attacker.getName() + " ×" + multiplier
+                        + " cancelled=" + event.isCancelled()
+                        + " base=" + String.format(java.util.Locale.ROOT, "%.2f", base)
+                        + " extra=" + String.format(java.util.Locale.ROOT, "%.2f", extra));
+            }
+            if (extra >= living.getHealth()) {
+                living.damage(extra, attacker); // 致死补差：走伤害通道保证死亡结算与掉落归因
+            } else {
+                living.setHealth(Math.max(0.0D, living.getHealth() - extra));
+            }
+        } finally {
+            applying.remove(living.getUniqueId());
+        }
+    }
+
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerDealtDamage(EntityDamageByEntityEvent event) {
         Player attacker = resolveAttacker(event);
@@ -40,9 +97,19 @@ public final class CombatListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onEntityDeath(EntityDeathEvent event) {
         Player killer = event.getEntity().getKiller();
-        if (killer != null) {
-            plugin.resources().onKill(killer);
+        if (killer == null) {
+            return;
         }
+        plugin.resources().onKill(killer);
+        // 阶段三：击杀经验（与副本 Boss 经费在 InstanceManager 里单独发放）
+        plugin.talents().addExperience(killer, plugin.config().main().xpPerKill());
+        double money = plugin.economy().killMoneyMin()
+                + ThreadLocalRandom.current().nextDouble()
+                * (plugin.economy().killMoneyMax() - plugin.economy().killMoneyMin());
+        if (event.getEntity() instanceof Player) {
+            return; // 不给玩家击杀发钱
+        }
+        plugin.economy().deposit(killer, Math.round(money * 100.0D) / 100.0D, "economy.kill-gain");
     }
 
     private static Player resolveAttacker(EntityDamageByEntityEvent event) {

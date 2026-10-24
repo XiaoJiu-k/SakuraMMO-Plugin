@@ -28,6 +28,9 @@ public final class ConfigManager {
             "strength", "health", "regeneration", "luck", "wisdom",
             "toughness", "crit_chance", "crit_damage", "speed");
 
+    /** 内置副本 id（首次启动释放到 dungeons/，模板引导生成后会按实测坐标重写）。 */
+    public static final List<String> DEFAULT_DUNGEON_IDS = List.of("blackiron");
+
     private final JavaPlugin plugin;
 
     private MainConfig main = MainConfig.defaults();
@@ -48,6 +51,11 @@ public final class ConfigManager {
         for (String id : DEFAULT_CLASS_IDS) {
             saveIfAbsent("classes/" + id + ".yml");
         }
+        for (String id : DEFAULT_DUNGEON_IDS) {
+            saveIfAbsent("dungeons/" + id + ".yml");
+        }
+        saveIfAbsent("talents.yml");
+        saveIfAbsent("recipes.yml");
 
         String messagePath = "messages_" + main.language() + ".yml";
         mergeMessageDefaults(messagePath);
@@ -75,6 +83,17 @@ public final class ConfigManager {
                 cfg.getBoolean("menu.intercept-swap", d.menuInterceptSwap()),
                 cfg.getBoolean("menu.shift-bypass", d.menuShiftBypass()),
                 cfg.getString("menu.filler", d.menuFiller()),
+                cfg.getBoolean("keybinds.shift-hotbar.enabled", d.keybindShiftHotbarEnabled()),
+                Math.max(2, cfg.getInt("party.max-members", d.partyMaxMembers())),
+                Math.max(0, cfg.getInt("party.offline-kick-minutes", d.partyOfflineKickMinutes())),
+                Math.max(1, cfg.getInt("dungeon.cleanup-delay-seconds", d.dungeonCleanupDelaySeconds())),
+                cfg.getBoolean("dungeon.auto-create-template", d.dungeonAutoTemplate()),
+                Math.max(0.0D, cfg.getDouble("economy.kill-money-min", d.killMoneyMin())),
+                Math.max(0.0D, cfg.getDouble("economy.kill-money-max", d.killMoneyMax())),
+                Math.max(0.0D, cfg.getDouble("economy.boss-money-min", d.bossMoneyMin())),
+                Math.max(0.0D, cfg.getDouble("economy.boss-money-max", d.bossMoneyMax())),
+                Math.min(1.0D, Math.max(0.0D, cfg.getDouble("economy.sell-refund-rate", d.sellRefundRate()))),
+                Math.max(0, cfg.getInt("economy.xp-per-kill", d.xpPerKill())),
                 cfg.getBoolean("debug", d.debug())
         );
     }

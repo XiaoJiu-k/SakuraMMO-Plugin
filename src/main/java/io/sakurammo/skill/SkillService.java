@@ -9,9 +9,7 @@ import io.sakurammo.player.SkillBinding;
 import io.sakurammo.util.Msg;
 import io.sakurammo.util.Text;
 import io.sakurammo.util.TimeFormat;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 
 /**
  * 技能入口：绑定 / 解绑 / 五项校验 / 调用 MythicMobs 施放。
@@ -36,9 +34,44 @@ public final class SkillService {
         }
     }
 
-    // ---------------- 绑定 ----------------
+    // ---------------- 绑定（v3：Shift+1~4 按键槽位） ----------------
 
-    public Result bind(Player player, String skillId) {
+    /** 校验按键槽位合法性（1/2/3/4）。 */
+    public static boolean validKey(String key) {
+        return key != null && PlayerProfile.SKILL_KEYS.contains(key.toUpperCase(java.util.Locale.ROOT));
+    }
+
+    public static String normalizeKey(String key) {
+        return key == null ? null : key.trim().toUpperCase(java.util.Locale.ROOT);
+    }
+
+    /** 槽位序号（1-4）→ 按键（1/2/3/4），非法返回 null。 */
+    public static String keyOfSlot(int slot) {
+        if (slot < 1 || slot > PlayerProfile.SKILL_KEYS.size()) {
+            return null;
+        }
+        return PlayerProfile.SKILL_KEYS.get(slot - 1);
+    }
+
+    /** 按键 → 槽位序号（1-4），非法返回 -1。 */
+    public static int slotOfKey(String key) {
+        int index = PlayerProfile.SKILL_KEYS.indexOf(normalizeKey(key));
+        return index < 0 ? -1 : index + 1;
+    }
+
+    /** 按键的显示名：槽位 1-4 显示为 Shift+1 ~ Shift+4，其他原样返回。 */
+    public static String keyDisplay(String key) {
+        return validKey(key) ? "Shift+" + normalizeKey(key) : String.valueOf(key);
+    }
+
+    /**
+     * 绑定技能到按键槽位（Shift+1~4）。绑定不跟物品走；换绑不清除冷却（冷却按 skillId 存）。
+     */
+    public Result bind(Player player, String skillId, String key) {
+        key = normalizeKey(key);
+        if (!validKey(key)) {
+            return Result.fail(Msg.raw("skill.bind-key-invalid", "key", String.valueOf(key)));
+        }
         SkillDefinition definition = plugin.config().skill(skillId);
         if (definition == null) {
             return Result.fail(Msg.raw("skill.unknown", "id", skillId));
@@ -55,31 +88,41 @@ public final class SkillService {
         if (!definition.trigger().bindable()) {
             return Result.fail(Msg.raw("skill.passive-not-bindable", "skill", definition.displayName()));
         }
-        ItemStack hand = player.getInventory().getItemInMainHand();
-        if (hand == null || hand.getType().isAir()) {
-            return Result.fail(Msg.raw("skill.empty-hand"));
-        }
-        int slot = player.getInventory().getHeldItemSlot();
-        Material material = hand.getType();
-        profile.boundSkills().put(slot, new SkillBinding(definition.id(), material));
-        profile.markDirty();
+        profile.skillBind(key, definition.id());
         plugin.playerData().save(profile);
-        return Result.ok(Msg.raw("skill.bound",
-                "skill", definition.displayName(),
-                "material", material.name(),
-                "slot", String.valueOf(slot)));
+        return Result.ok(Msg.raw("skill.bind-success",
+                "skill", definition.displayName(), "key", keyDisplay(key)));
     }
 
-    public Result unbind(Player player) {
+    public Result unbind(Player player, String key) {
+        key = normalizeKey(key);
+        if (!validKey(key)) {
+            return Result.fail(Msg.raw("skill.bind-key-invalid", "key", String.valueOf(key)));
+        }
         PlayerProfile profile = plugin.playerData().getOrLoad(player);
-        int slot = player.getInventory().getHeldItemSlot();
-        SkillBinding removed = profile.boundSkills().remove(slot);
+        String removed = profile.skillBinds().remove(key);
         if (removed == null) {
-            return Result.fail(Msg.raw("skill.unbound-empty"));
+            return Result.fail(Msg.raw("skill.unbind-empty-key", "key", keyDisplay(key)));
         }
         profile.markDirty();
         plugin.playerData().save(profile);
-        return Result.ok(Msg.raw("skill.unbound", "slot", String.valueOf(slot)));
+        return Result.ok(Msg.raw("skill.unbind-success", "key", keyDisplay(key)));
+    }
+
+    /** 按键槽位当前绑定的技能 id（null = 未绑定）。 */
+    public String bindOf(Player player, String key) {
+        PlayerProfile profile = plugin.playerData().get(player.getUniqueId());
+        return profile == null ? null : profile.skillBind(normalizeKey(key));
+    }
+
+    /** 技能的冷却剩余毫秒（0 = 就绪）。按 skillId 计算，与按键槽位无关。 */
+    public long cooldownRemaining(Player player, String skillId) {
+        PlayerProfile profile = plugin.playerData().get(player.getUniqueId());
+        if (profile == null) {
+            return 0L;
+        }
+        long remain = profile.cooldownUntil(skillId) - System.currentTimeMillis();
+        return Math.max(0L, remain);
     }
 
     public SkillBinding bindingAt(Player player, int slot) {
@@ -111,23 +154,24 @@ public final class SkillService {
             return fail(player, definition, "未解锁：缺少权限 " + definition.permission());
         }
 
-        // 3. 资源足够
+        // 3. 资源足够（天赋「消耗降低」在这里生效）
         ClassDefinition classDefinition = plugin.config().classOf(profile.classId());
         ResourceDefinition resource = classDefinition == null ? null : classDefinition.resource(definition.resource());
-        if (definition.cost() > 0.0D) {
+        double effectiveCost = definition.cost() * (1.0D - plugin.talents().costReduction(profile));
+        if (effectiveCost > 0.0D) {
             if (resource == null) {
                 return fail(player, definition, "资源 " + definition.resource() + " 未定义");
             }
             double current = plugin.resources().get(player, resource.id());
-            if (current < definition.cost()) {
+            if (current < effectiveCost) {
                 return Result.fail(Msg.raw("skill.no-resource",
                         "resource", Text.stripColor(resource.displayName()),
-                        "cost", Text.number(definition.cost()),
+                        "cost", Text.number(effectiveCost),
                         "current", Text.number(current)));
             }
         }
 
-        // 4. 冷却就绪
+        // 4. 冷却就绪（天赋「冷却缩减」在这里生效）
         long now = System.currentTimeMillis();
         long until = profile.cooldownUntil(definition.id());
         if (until > now) {
@@ -135,21 +179,25 @@ public final class SkillService {
                     "time", TimeFormat.humanize(until - now)));
         }
 
-        // 5. 交给 MythicMobs 执行
+        // 5. 交给 MythicMobs 执行（先记天赋倍率窗口：MythicMobs 的伤害 mechanic 同步结算，
+        //    事件在 castSkill 调用内触发，窗口必须先建立）
         if (!plugin.mythic().available()) {
             return fail(player, definition, "MythicMobs 不可用");
         }
+        plugin.talents().markCast(player, definition.id());
         boolean cast = plugin.mythic().castSkill(player, definition.mythicSkill());
         if (!cast) {
             return fail(player, definition, "MythicMobs castSkill 返回 false（技能 "
                     + definition.mythicSkill() + "）");
         }
 
-        // 成功后才扣资源 + 进冷却
-        if (definition.cost() > 0.0D && resource != null) {
-            plugin.resources().consume(player, resource.id(), definition.cost());
+        // 成功后才扣资源（按天赋折减后的消耗）+ 进冷却（按天赋折减后的冷却）
+        if (effectiveCost > 0.0D && resource != null) {
+            plugin.resources().consume(player, resource.id(), effectiveCost);
         }
-        profile.cooldownUntil(definition.id(), now + definition.cooldownMillis());
+        long cooldownMillis = Math.round(definition.cooldownMillis()
+                * (1.0D - plugin.talents().cooldownReduction(profile)));
+        profile.cooldownUntil(definition.id(), now + cooldownMillis);
         profile.markDirty();
 
         if (plugin.config().main().debug()) {

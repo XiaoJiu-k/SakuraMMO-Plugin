@@ -54,12 +54,19 @@ public final class ResourceService {
         if (resource == null) {
             return 0.0D;
         }
-        return clamp(profile.resource(resourceId), 0.0D, resource.max());
+        return clamp(profile.resource(resourceId), 0.0D, max(player, resourceId));
     }
 
+    /** 有效上限 = 职业配置 + 天赋加成（阶段三）。 */
     public double max(Player player, String resourceId) {
         ResourceDefinition resource = definitionOf(player, resourceId);
-        return resource == null ? 0.0D : resource.max();
+        if (resource == null) {
+            return 0.0D;
+        }
+        PlayerProfile profile = plugin.playerData().get(player.getUniqueId());
+        double bonus = profile == null ? 0.0D
+                : plugin.talents().resourceMaxBonus(profile, resource.id());
+        return resource.max() + bonus;
     }
 
     public ResourceDefinition definitionOf(Player player, String resourceId) {
@@ -96,7 +103,7 @@ public final class ResourceService {
         if (profile == null || resource == null) {
             return;
         }
-        profile.resource(resourceId, clamp(value, 0.0D, resource.max()));
+        profile.resource(resourceId, clamp(value, 0.0D, max(player, resourceId)));
     }
 
     /**
@@ -111,8 +118,9 @@ public final class ResourceService {
         if (resource == null || profile == null) {
             return false;
         }
+        double effectiveMax = max(player, resourceId);
         double current = get(player, resourceId);
-        if (current >= resource.max()) {
+        if (current >= effectiveMax) {
             return false;
         }
         ResourceGainEvent event = new ResourceGainEvent(player, resourceId, amount, cause);
@@ -120,7 +128,7 @@ public final class ResourceService {
         if (event.isCancelled() || event.amount() <= 0.0D) {
             return false;
         }
-        double next = clamp(current + event.amount(), 0.0D, resource.max());
+        double next = clamp(current + event.amount(), 0.0D, effectiveMax);
         if (next == current) {
             return false;
         }
@@ -217,8 +225,12 @@ public final class ResourceService {
                 if (resource.reserved() || resource.regenPerSecond() <= 0.0D) {
                     continue;
                 }
-                add(player, resource.id(), resource.regenPerSecond() * seconds,
-                        ResourceGainEvent.Cause.REGEN);
+                double regen = resource.regenPerSecond()
+                        + plugin.talents().resourceRegenBonus(profile, resource.id());
+                if (regen <= 0.0D) {
+                    continue;
+                }
+                add(player, resource.id(), regen * seconds, ResourceGainEvent.Cause.REGEN);
             }
         }
     }
