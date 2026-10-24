@@ -15,6 +15,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerItemHeldEvent;
+import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
@@ -156,6 +157,41 @@ public final class PlayerListener implements Listener {
         if (plugin.config().main().debug()) {
             plugin.getLogger().info("[debug] " + player.getName() + " Shift+" + key
                     + " 触发：" + skillId);
+        }
+        castBound(player, skillId, SkillService.keyDisplay(key));
+    }
+
+    /**
+     * Shift 按下的瞬间检查当前选中槽位（阶段四用户反馈：已站在槽位上时
+     * Shift+数字无法施法——同槽数字键客户端不发任何包，PlayerItemHeldEvent
+     * 收不到）。当前槽 1~4 且有绑定时立即施放；空槽/5-9/未绑定 = 正常潜行不误触。
+     */
+    @EventHandler(priority = EventPriority.NORMAL)
+    public void onSneakPress(PlayerToggleSneakEvent event) {
+        if (!event.isSneaking()) {
+            return; // 只处理按下瞬间
+        }
+        if (!plugin.config().main().keybindShiftHotbarEnabled()) {
+            return;
+        }
+        Player player = event.getPlayer();
+        int slot = player.getInventory().getHeldItemSlot();
+        if (slot < 0 || slot >= PlayerProfile.SKILL_KEYS.size()) {
+            return;
+        }
+        String key = PlayerProfile.SKILL_KEYS.get(slot);
+        PlayerProfile profile = plugin.playerData().get(player.getUniqueId());
+        if (profile == null || !profile.hasClass()) {
+            return;
+        }
+        String skillId = profile.skillBind(key);
+        if (skillId == null) {
+            return; // 当前槽未绑定 → 正常潜行
+        }
+        comboCount++;
+        if (plugin.config().main().debug()) {
+            plugin.getLogger().info("[debug] " + player.getName() + " Shift+" + key
+                    + "（潜行触发，当前槽位）：" + skillId);
         }
         castBound(player, skillId, SkillService.keyDisplay(key));
     }
