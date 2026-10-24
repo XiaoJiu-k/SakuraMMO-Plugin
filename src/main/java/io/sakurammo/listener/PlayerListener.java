@@ -99,7 +99,11 @@ public final class PlayerListener implements Listener {
 
         SkillService.Result result = plugin.skills().cast(player, definition);
         if (result.ok()) {
-            event.setCancelled(true);
+            // 只拦「对方块」的右键：避免技能触发时顺手放了方块。
+            // 空气右键不拦，否则弓类武器会因为绑定技能而无法蓄力。
+            if (onBlock) {
+                event.setCancelled(true);
+            }
         } else if (result.message() != null) {
             actionBar(player, result.message());
         }

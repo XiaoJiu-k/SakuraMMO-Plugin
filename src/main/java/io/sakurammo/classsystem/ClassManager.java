@@ -153,8 +153,16 @@ public final class ClassManager {
         tryApply(player, true);
     }
 
-    /** 登录补发：每 10 tick 重试，最多 20 次（10 秒），直到 AuraSkills 的用户数据就绪。 */
+    /** 登录补发：先补技能权限（不依赖 AuraSkills），再每 10 tick 重试修饰符，最多 20 次（10 秒）。 */
     public void scheduleApplyOnJoin(Player player) {
+        PlayerProfile profile = plugin.playerData().get(player.getUniqueId());
+        if (profile != null && profile.hasClass()) {
+            ClassDefinition definition = plugin.config().classOf(profile.classId());
+            if (definition != null) {
+                // PermissionAttachment 不跨会话，必须每次登录重发
+                grantSkillPermissions(player, definition);
+            }
+        }
         new BukkitRunnable() {
             private int attempts = 0;
 

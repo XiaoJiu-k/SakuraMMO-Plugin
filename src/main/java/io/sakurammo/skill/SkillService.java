@@ -57,7 +57,7 @@ public final class SkillService {
         }
         ItemStack hand = player.getInventory().getItemInMainHand();
         if (hand == null || hand.getType().isAir()) {
-            return Result.fail(Msg.raw("skill.no-binding"));
+            return Result.fail(Msg.raw("skill.empty-hand"));
         }
         int slot = player.getInventory().getHeldItemSlot();
         Material material = hand.getType();

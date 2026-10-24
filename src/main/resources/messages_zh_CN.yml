@@ -51,6 +51,7 @@ skill:
   no-resource: "&c{resource}不足 &7(需要 {cost}，当前 {current})"
   cooldown: "&c冷却中 &f{time}"
   no-binding: "&7主手物品没有绑定技能。用 &f/sm bind <skillId> &7绑定。"
+  empty-hand: "&7请先手持要绑定技能的物品，再执行 &f/sm bind <skillId>&7。"
   material-mismatch: "&c绑定技能属于 &f{material}&c，主手物品不匹配。"
   bound: "&a已将 &f{skill} &a绑定到 &f{material}&a（槽位 {slot}）。"
   unbound: "&7已解除槽位 {slot} 的技能绑定。"
