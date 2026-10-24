@@ -170,8 +170,13 @@ public final class CombatListener implements Listener {
         if (plugin.instances().byWorld(event.getEntity().getWorld().getName()) == null) {
             plugin.weeklies().progress(killer, "kill_mobs", 1);
         }
-        // 阶段三：击杀经验（与副本 Boss 经费在 InstanceManager 里单独发放）
+        // 阶段三：击杀经验（与副本 Boss 奖励在 InstanceManager 里单独发放）
         plugin.talents().addExperience(killer, plugin.config().main().xpPerKill());
+        // 阶段四用户需求：金币奖励仅限副本世界内击杀（副本 Boss 另有 InstanceManager 的 Boss 奖励）
+        if (plugin.instances().byWorld(event.getEntity().getWorld().getName()) == null
+                || event.getEntity() instanceof Player) {
+            return;
+        }
         double money = plugin.economy().killMoneyMin()
                 + ThreadLocalRandom.current().nextDouble()
                 * (plugin.economy().killMoneyMax() - plugin.economy().killMoneyMin());
