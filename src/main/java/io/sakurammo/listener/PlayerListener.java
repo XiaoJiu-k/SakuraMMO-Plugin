@@ -77,6 +77,17 @@ public final class PlayerListener implements Listener {
         plugin.talents().scheduleApplyOnJoin(player);
         // 阶段四：周常 Cycle-ID 校验（跨周期登录即重置，无遍历）
         plugin.weeklies().ensureCycle(player);
+        // 阶段四：职业等级 → 原版等级显示（档案等级高于原版时一次性迁移，豁免发点）
+        if (profile.level() > player.getLevel() && profile.level() > 1) {
+            plugin.weeklies().suppressNextLevelEvent(player);
+            player.setLevel(Math.min(profile.level(), 60));
+        }
+    }
+
+    /** 阶段四：原版等级变化 → 同步职业档案 + 天赋点发放（Lv.10 起每 3 级 1 点）。 */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onLevelChange(org.bukkit.event.player.PlayerLevelChangeEvent event) {
+        plugin.weeklies().handleLevelChange(event.getPlayer(), event.getOldLevel(), event.getNewLevel());
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

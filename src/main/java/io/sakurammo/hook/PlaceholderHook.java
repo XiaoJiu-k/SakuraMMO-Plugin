@@ -97,7 +97,8 @@ public final class PlaceholderHook extends PlaceholderExpansion {
             return String.valueOf(profile.talentPoints());
         }
         if (key.equals("talent_level")) {
-            return String.valueOf(profile.level());
+            return String.valueOf(offlinePlayer != null && offlinePlayer.isOnline()
+                    ? ((org.bukkit.entity.Player) offlinePlayer).getLevel() : profile.level());
         }
         if (key.equals("talent_cd")) {
             return io.sakurammo.util.Text.number(plugin.talents().cooldownReduction(profile));

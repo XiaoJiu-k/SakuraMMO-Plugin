@@ -1,6 +1,7 @@
 package io.sakurammo.weekly;
 
 import io.sakurammo.SakuraMMOPlugin;
+import io.sakurammo.player.PlayerProfile;
 import io.sakurammo.util.Msg;
 import io.sakurammo.util.Text;
 import org.bukkit.Bukkit;
@@ -214,6 +215,76 @@ public final class WeeklyManager {
         plugin.audit().log("weekly-claim", player.getName(),
                 task.id() + " money=" + task.rewardMoney() + " token=" + task.rewardToken());
         return true;
+    }
+
+    // ---------------- 经验与升级（阶段四：职业等级改由原版经验等级承载） ----------------
+
+    /** 升到下一级所需经验（保留常量供显示参考；实际升级由原版经验曲线承载）。 */
+    public static long experienceForLevel(int level) {
+        return 100L + 50L * Math.max(0, level);
+    }
+
+    /** 已获得天赋点总数（Lv.10 起，每 3 级 1 点，60 级封顶 17 点）。 */
+    public static int earnedPoints(int level) {
+        if (level < 10) {
+            return 0;
+        }
+        return Math.min(17, (Math.min(60, level) - 10) / 3 + 1);
+    }
+
+    /** 登录等级同步豁免（一次性，防止 setLevel 迁移重复发点）。 */
+    private final java.util.Set<java.util.UUID> levelSyncSuppressed =
+            java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+    public void suppressNextLevelEvent(Player player) {
+        levelSyncSuppressed.add(player.getUniqueId());
+    }
+
+    /**
+     * 增加经验：直接给<b>原版经验</b>（经验条数字即职业等级，他人可见）。
+     * 升级检测与天赋点发放统一在 PlayerLevelChangeEvent（PlayerListener 转发）。
+     *
+     * @return 原版等级变化数
+     */
+    public int addExperience(Player player, long amount) {
+        if (amount <= 0) {
+            return 0;
+        }
+        PlayerProfile profile = plugin.playerData().getOrLoad(player);
+        int before = player.getLevel();
+        player.giveExp((int) Math.min(amount, Integer.MAX_VALUE));
+        int after = player.getLevel();
+        if (after != profile.level()) {
+            profile.level(after);
+            plugin.playerData().save(profile);
+        }
+        return after - before;
+    }
+
+    /**
+     * 原版等级变化（PlayerLevelChangeEvent 转发）：同步档案等级，
+     * 按 earnedPoints 差值发放天赋点。登录迁移（suppress）时只对齐不发点。
+     */
+    public void handleLevelChange(Player player, int before, int after) {
+        PlayerProfile profile = plugin.playerData().getOrLoad(player);
+        if (levelSyncSuppressed.remove(player.getUniqueId())) {
+            profile.level(after);
+            plugin.playerData().save(profile);
+            return;
+        }
+        profile.level(after);
+        int pointsBefore = earnedPoints(before);
+        int pointsAfter = earnedPoints(after);
+        if (pointsAfter > pointsBefore) {
+            profile.talentPoints(profile.talentPoints() + (pointsAfter - pointsBefore));
+            Msg.send(player, "talent.points-gained", "points",
+                    String.valueOf(pointsAfter - pointsBefore),
+                    "total", String.valueOf(profile.talentPoints()));
+        }
+        if (after > before) {
+            Msg.send(player, "talent.level-up", "level", String.valueOf(after));
+        }
+        plugin.playerData().save(profile);
     }
 
     // ---------------- 赛季（预留接口） ----------------

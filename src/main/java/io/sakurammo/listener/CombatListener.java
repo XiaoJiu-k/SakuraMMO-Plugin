@@ -86,6 +86,47 @@ public final class CombatListener implements Listener {
         }
     }
 
+    /**
+     * 召唤物保护（阶段四）：名字带「小鬼」的召唤物免疫玩家方伤害——
+     * 术士 AoE 技能（MM 范围目标器无法排除召唤物）不再误伤自己的小鬼。
+     */
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onSummonerFriendlyFire(EntityDamageByEntityEvent event) {
+        // MM 生成的实体名是 Adventure 组件——legacy getCustomName() 可能为 null，两种通道都查
+        String name = null;
+        try {
+            name = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText()
+                    .serialize(event.getEntity().name());
+        } catch (Throwable ignored) {
+            // 退化到 legacy
+        }
+        if (name == null || name.isBlank()) {
+            name = event.getEntity().getCustomName();
+        }
+        if (name == null || !name.contains("小鬼")) {
+            return;
+        }
+        if (resolveAttacker(event) != null) {
+            event.setCancelled(true);
+        }
+    }
+
+    /** 召唤物保护补充：技能击退抛空的摔落伤害一并免疫（FALL）。 */
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onSummonerFallDamage(org.bukkit.event.entity.EntityDamageEvent event) {
+        String name = null;
+        try {
+            name = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText()
+                    .serialize(event.getEntity().name());
+        } catch (Throwable ignored) {
+            name = event.getEntity().getCustomName();
+        }
+        if (name != null && name.contains("小鬼")
+                && event.getCause() == org.bukkit.event.entity.EntityDamageEvent.DamageCause.FALL) {
+            event.setCancelled(true);
+        }
+    }
+
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerDealtDamage(EntityDamageByEntityEvent event) {
         Player attacker = resolveAttacker(event);
