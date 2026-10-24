@@ -62,6 +62,7 @@ Paper 1.21.4-232 / Java 21
 
 | 命令 | 权限 | 说明 |
 |---|---|---|
+| `/sm menu` | `sakurammo.use` | 打开角色面板（等效于按 F） |
 | `/sm class list` | `sakurammo.use` | 列出 7 个职业，当前职业带 ◀ 标记 |
 | `/sm class select <id>` | `sakurammo.use` | 首次选择（免费） |
 | `/sm class switch <id>` | `sakurammo.use` | 切换（默认 24h 冷却 + 可选费用） |
@@ -70,8 +71,9 @@ Paper 1.21.4-232 / Java 21
 | `/sm resource set <p> <res> <v>` | `sakurammo.admin` | 调试用 |
 | `/sm bind <skillId>` | `sakurammo.use` | 绑定技能到**主手物品所在槽位** |
 | `/sm unbind` | `sakurammo.use` | 解除当前槽位绑定 |
+| `/sm cast <skillId>` | `sakurammo.use` | 直接施放，绕过绑定（调试 / 宏用） |
 | `/sm reload` | `sakurammo.admin` | 只重载配置，不重载玩家数据 |
-| `/sm debug` | `sakurammo.admin` | 职业 / 资源 / 冷却 / 修饰符 / 挂钩状态 |
+| `/sm debug` | `sakurammo.admin` | 职业 / 资源 / 冷却 / 修饰符 / 挂钩 / 交互计数 |
 
 别名：`/sakurammo`。Tab 补全覆盖全部子命令与职业/技能 id。
 
@@ -99,10 +101,37 @@ hud:
   format: "&b{display} &f{current}&7/&f{max}"
 resource:
   tick-interval-ticks: 10         # 0.5s 一次自然恢复
+menu:
+  enabled: true                   # 角色面板总开关
+  intercept-swap: true            # 拦截 F（副手交换）改为打开菜单
+  shift-bypass: true              # 潜行 + F 保留原版副手交换
+  filler: GRAY_STAINED_GLASS_PANE # 空位填充物
 debug: false
 ```
 
 HUD 占位符：`{display}` `{current}` `{max}` `{percent}` `{class}` `{class_display}` `{resource}`
+
+> ⚠️ **ActionBar 会与 AuraSkills 抢通道**：AuraSkills 的 `action_bar` 每 5 tick 刷新一次（显示血量/法力），
+> 比本插件的 10 tick 更频繁，实测会把资源条盖掉。二选一：
+> 把 `plugins/AuraSkills/config.yml` 的 `action_bar.enabled` 改成 `false`，
+> 或者把本插件的 `hud.enabled` 改成 `false`，只用 `/sm resource` 与 PAPI 看资源。
+
+### 角色面板（按 F 打开）
+
+```
+[ ][ ][ ][ ][职业][ ][ ][ ][ ]                    ← 点击看详情 / 进职业选择
+[ ][ ][ ][ ][资源][ ][ ][ ][ ]                    ← 主资源与产出规则
+[ ][技能1][技能2][技能3][技能4][技能5][ ][ ][ ]     ← 点击绑定到主手槽位
+[ ][ ][ ][ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][切换职业][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ][ ][ ][关闭]
+```
+
+- 触发：按 **F**（走 `PlayerSwapHandItemsEvent`）；**潜行时按 F 保留原版副手交换**；也可 `/sm menu`
+- 没选职业时按 F 直接进「选择职业」界面
+- 点非当前职业 → 二次确认页（避免误触 24h 冷却）
+- 图标来自 `classes/<id>.yml` 的 `icon:` 与 `skills.yml` 的 `icon:`，写了不存在的 Material 会回退默认值
+- 菜单内所有点击与拖拽都被取消，玩家拿不出菜单里的物品
 
 ### `classes/<id>.yml`
 
@@ -235,6 +264,9 @@ AuraSkills 的修饰符存在 `Map<String, StatModifier>` 里，**名字就是�
 | 等级 / 经验 / 专精 | 字段已持久化，逻辑留 P1 |
 | 法术攻击 / 治疗强度 / 护甲穿透 / 格挡 / 冷却缩减 / 抗暴 | AuraSkills 没有这些属性，`stats:` 里写会被 WARN 并忽略 |
 | 绑定按槽位 + 材质 | 换武器不触发；同槽位换回该材质会恢复 |
+| ActionBar 与 AuraSkills 冲突 | 见「配置」小节，二选一 |
+| 右键触发有两条事件通道 | 右键方块/空气走 PlayerInteractEvent，右键**实体**走 PlayerInteractEntityEvent，两条都接了 |
+| 升级不覆盖 skills.yml / classes/*.yml | 这两个是内容文件，saveResource 只在首次生成；新增的 icon: 等字段要手动同步。messages_*.yml 会自动补齐缺失键 |
 
 ## 目录结构
 
@@ -247,7 +279,8 @@ src/main/java/io/sakurammo/
 ├── event/                      ClassChangeEvent / ResourceGainEvent
 ├── hook/                       AuraSkillsHook / MythicMobsHook / Vault* / Placeholder*
 ├── hud/HudService              ActionBar 资源条
-├── listener/                   玩家生命周期 / 右键施法 / 战斗资源增益
+├── listener/                   玩家生命周期 / 右键施法（方块+实体）/ 战斗资源增益
+├── menu/                       按 F 打开的角色面板（Menu / MainMenu / ClassMenu / ConfirmSwitchMenu）
 ├── player/                     PlayerProfile / PlayerDataManager（原子写）
 ├── resource/ResourceService    资源唯一入口
 ├── skill/SkillService          绑定 / 五项校验 / 调 MythicMobs

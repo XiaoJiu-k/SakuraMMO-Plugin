@@ -32,5 +32,15 @@ resource:
   # 资源自然恢复的 tick 间隔。10 tick = 0.5 秒（任务书 §3 P0-2 要求 0.5s）
   tick-interval-ticks: 10
 
+menu:
+  # 角色面板菜单（按 F 打开）
+  enabled: true
+  # 拦截「F 交换副手」并改为打开菜单。设为 false 则 F 恢复原版行为，只能用 /sm menu 打开
+  intercept-swap: true
+  # 潜行时按 F 保持原版副手交换（给需要频繁换副手的玩家留的出口）
+  shift-bypass: true
+  # 菜单空位填充物
+  filler: GRAY_STAINED_GLASS_PANE
+
 # 调试模式：控制台输出 modifier 应用 / 技能施放细节
 debug: false

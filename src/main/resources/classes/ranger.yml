@@ -5,6 +5,7 @@
 id: ranger
 display-name: 游侠
 role: 远程物理 DPS
+icon: BOW
 description: 百步穿杨的猎手，陷阱与箭术大师。
 
 stats:

@@ -6,6 +6,7 @@
 id: elementalist
 display-name: 元素法师
 role: 远程法系 DPS
+icon: BLAZE_ROD
 description: 操纵元素的毁灭者。
 
 stats:

@@ -11,6 +11,7 @@ import io.sakurammo.hook.VaultBootstrap;
 import io.sakurammo.hud.HudService;
 import io.sakurammo.listener.CombatListener;
 import io.sakurammo.listener.PlayerListener;
+import io.sakurammo.menu.MenuManager;
 import io.sakurammo.player.PlayerDataManager;
 import io.sakurammo.resource.ResourceService;
 import io.sakurammo.skill.SkillService;
@@ -42,6 +43,8 @@ public final class SakuraMMOPlugin extends JavaPlugin {
     private ResourceService resources;
     private SkillService skills;
     private HudService hud;
+    private MenuManager menus;
+    private PlayerListener playerListener;
 
     private Object placeholderHandle;
     private boolean placeholderRegistered;
@@ -65,10 +68,13 @@ public final class SakuraMMOPlugin extends JavaPlugin {
         resources = new ResourceService(this);
         skills = new SkillService(this);
         hud = new HudService(this);
+        menus = new MenuManager(this);
 
         registerCommand();
-        Bukkit.getPluginManager().registerEvents(new PlayerListener(this), this);
+        playerListener = new PlayerListener(this);
+        Bukkit.getPluginManager().registerEvents(playerListener, this);
         Bukkit.getPluginManager().registerEvents(new CombatListener(this), this);
+        menus.register();
 
         placeholderHandle = PlaceholderBootstrap.register(this);
         placeholderRegistered = placeholderHandle != null;
@@ -182,6 +188,14 @@ public final class SakuraMMOPlugin extends JavaPlugin {
 
     public HudService hud() {
         return hud;
+    }
+
+    public MenuManager menus() {
+        return menus;
+    }
+
+    public PlayerListener playerListener() {
+        return playerListener;
     }
 
     public boolean placeholderRegistered() {

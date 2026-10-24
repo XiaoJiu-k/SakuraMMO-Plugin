@@ -6,6 +6,7 @@
 id: priest
 display-name: 牧师
 role: 主治疗
+icon: GOLDEN_APPLE
 description: 圣光的治疗者，团队的生命线。
 
 stats:

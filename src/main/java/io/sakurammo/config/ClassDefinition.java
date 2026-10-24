@@ -1,5 +1,7 @@
 package io.sakurammo.config;
 
+import org.bukkit.Material;
+
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -14,6 +16,7 @@ public final class ClassDefinition {
     private final String displayName;
     private final String role;
     private final String description;
+    private final Material icon;
     private final Map<String, Double> stats;
     private final Map<String, ResourceDefinition> resources;
     private final List<String> skills;
@@ -24,6 +27,7 @@ public final class ClassDefinition {
                            String displayName,
                            String role,
                            String description,
+                           Material icon,
                            Map<String, Double> stats,
                            Map<String, ResourceDefinition> resources,
                            List<String> skills,
@@ -33,6 +37,7 @@ public final class ClassDefinition {
         this.displayName = displayName;
         this.role = role;
         this.description = description;
+        this.icon = icon;
         this.stats = Collections.unmodifiableMap(new LinkedHashMap<>(stats));
         this.resources = Collections.unmodifiableMap(new LinkedHashMap<>(resources));
         this.skills = List.copyOf(skills);
@@ -54,6 +59,11 @@ public final class ClassDefinition {
 
     public String description() {
         return description;
+    }
+
+    /** 菜单图标，null 表示用默认值。 */
+    public Material icon() {
+        return icon;
     }
 
     public Map<String, Double> stats() {

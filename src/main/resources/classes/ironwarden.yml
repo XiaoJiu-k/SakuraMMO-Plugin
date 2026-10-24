@@ -6,6 +6,7 @@
 id: ironwarden
 display-name: 铁卫
 role: 主坦克
+icon: SHIELD
 description: 前排承伤，靠格挡与减伤建立仇恨。
 
 # 属性加成：插件转成 AuraSkills 的 StatModifier

@@ -49,8 +49,9 @@ public final class ConfigManager {
             saveIfAbsent("classes/" + id + ".yml");
         }
 
-        Msg.load(new File(plugin.getDataFolder(), "messages_" + main.language() + ".yml"), plugin.getLogger());
-
+        String messagePath = "messages_" + main.language() + ".yml";
+        mergeMessageDefaults(messagePath);
+        Msg.load(new File(plugin.getDataFolder(), messagePath), plugin.getLogger());
         classes.clear();
         skills.clear();
         loadClasses();
@@ -70,6 +71,10 @@ public final class ConfigManager {
                 Math.max(1, cfg.getInt("hud.update-interval-ticks", d.hudIntervalTicks())),
                 cfg.getString("hud.format", d.hudFormat()),
                 Math.max(1, cfg.getInt("resource.tick-interval-ticks", d.resourceTickIntervalTicks())),
+                cfg.getBoolean("menu.enabled", d.menuEnabled()),
+                cfg.getBoolean("menu.intercept-swap", d.menuInterceptSwap()),
+                cfg.getBoolean("menu.shift-bypass", d.menuShiftBypass()),
+                cfg.getString("menu.filler", d.menuFiller()),
                 cfg.getBoolean("debug", d.debug())
         );
     }
@@ -86,8 +91,40 @@ public final class ConfigManager {
         }
     }
 
-    private void loadClasses() {
-        File dir = new File(plugin.getDataFolder(), "classes");
+    /**
+     * 把 jar 内默认语言文件里「用户文件还没有的键」补进去。
+     * 这样插件升级新增消息时，不需要用户手动删文件重建。
+     */
+    private void mergeMessageDefaults(String messagePath) {
+        File userFile = new File(plugin.getDataFolder(), messagePath);
+        if (!userFile.isFile()) {
+            return;
+        }
+        try (java.io.InputStream in = plugin.getResource(messagePath)) {
+            if (in == null) {
+                return;
+            }
+            YamlConfiguration defaults = YamlConfiguration.loadConfiguration(
+                    new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8));
+            YamlConfiguration user = YamlConfiguration.loadConfiguration(userFile);
+            List<String> added = new ArrayList<>();
+            for (String key : defaults.getKeys(true)) {
+                if (defaults.isConfigurationSection(key) || user.contains(key)) {
+                    continue;
+                }
+                user.set(key, defaults.get(key));
+                added.add(key);
+            }
+            if (!added.isEmpty()) {
+                user.save(userFile);
+                plugin.getLogger().info("语言文件补齐 " + added.size() + " 条新条目：" + added);
+            }
+        } catch (Exception ex) {
+            plugin.getLogger().log(Level.WARNING, "补齐语言文件失败", ex);
+        }
+    }
+
+    private void loadClasses() {        File dir = new File(plugin.getDataFolder(), "classes");
         if (!dir.isDirectory() && !dir.mkdirs()) {
             plugin.getLogger().severe("无法创建 classes 目录：" + dir.getAbsolutePath());
             return;
@@ -163,6 +200,7 @@ public final class ConfigManager {
                 yaml.getString("display-name", id),
                 yaml.getString("role", ""),
                 yaml.getString("description", ""),
+                material(yaml.getString("icon")),
                 stats,
                 resources,
                 skillIds,
@@ -192,7 +230,8 @@ public final class ConfigManager {
                     Math.max(0.0D, sec.getDouble("cost", 0.0D)),
                     Math.max(0.0D, sec.getDouble("cooldown", 0.0D)),
                     TriggerType.parse(sec.getString("trigger", "RIGHT_CLICK")),
-                    sec.getString("unlock.permission", "")
+                    sec.getString("unlock.permission", ""),
+                    material(sec.getString("icon"))
             ));
         }
         plugin.getLogger().info("已加载 " + skills.size() + " 个技能入口定义。");
@@ -221,6 +260,18 @@ public final class ConfigManager {
 
     private static double clamp(double value, double min, double max) {
         return Math.max(min, Math.min(max, value));
+    }
+
+    /** 解析 Material 名，失败返回 null（调用方用默认值兜底）。 */
+    public static org.bukkit.Material material(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+        org.bukkit.Material material = org.bukkit.Material.matchMaterial(raw.trim().toUpperCase(Locale.ROOT));
+        if (material == null) {
+            return null;
+        }
+        return material.isItem() ? material : null;
     }
 
     public MainConfig main() {

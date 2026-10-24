@@ -97,20 +97,18 @@ public final class SkillService {
     public Result cast(Player player, SkillDefinition definition) {
         PlayerProfile profile = plugin.playerData().get(player.getUniqueId());
         if (profile == null || !profile.hasClass()) {
-            return Result.fail(Msg.raw("class.none-selected"));
+            return fail(player, definition, "玩家没有职业");
         }
 
         // 1. 职业匹配
         if (!definition.classId().equals(profile.classId())) {
-            return Result.fail(Msg.raw("skill.class-mismatch",
-                    "skill", definition.displayName(),
-                    "owner", plugin.classManager().displayOf(definition.classId()),
-                    "player_class", plugin.classManager().displayOf(profile.classId())));
+            return fail(player, definition, "职业不符：技能属于 " + definition.classId()
+                    + "，玩家是 " + profile.classId());
         }
 
         // 2. 已解锁
         if (definition.hasPermissionGate() && !player.hasPermission(definition.permission())) {
-            return Result.fail(Msg.raw("skill.locked", "skill", definition.displayName()));
+            return fail(player, definition, "未解锁：缺少权限 " + definition.permission());
         }
 
         // 3. 资源足够
@@ -118,8 +116,7 @@ public final class SkillService {
         ResourceDefinition resource = classDefinition == null ? null : classDefinition.resource(definition.resource());
         if (definition.cost() > 0.0D) {
             if (resource == null) {
-                return Result.fail(Msg.raw("skill.cast-failed",
-                        "reason", "资源 " + definition.resource() + " 未定义"));
+                return fail(player, definition, "资源 " + definition.resource() + " 未定义");
             }
             double current = plugin.resources().get(player, resource.id());
             if (current < definition.cost()) {
@@ -140,12 +137,12 @@ public final class SkillService {
 
         // 5. 交给 MythicMobs 执行
         if (!plugin.mythic().available()) {
-            return Result.fail(Msg.raw("skill.cast-failed", "reason", "MythicMobs 不可用"));
+            return fail(player, definition, "MythicMobs 不可用");
         }
         boolean cast = plugin.mythic().castSkill(player, definition.mythicSkill());
         if (!cast) {
-            return Result.fail(Msg.raw("skill.cast-failed",
-                    "reason", "MythicMobs 未找到技能 " + definition.mythicSkill()));
+            return fail(player, definition, "MythicMobs castSkill 返回 false（技能 "
+                    + definition.mythicSkill() + "）");
         }
 
         // 成功后才扣资源 + 进冷却
@@ -162,8 +159,16 @@ public final class SkillService {
         return Result.ok(null);
     }
 
-    // ---------------- 启动校验 ----------------
+    /** 失败时统一打 debug 日志 + 返回提示，方便定位「为什么放不出来」。 */
+    private Result fail(Player player, SkillDefinition definition, String reason) {
+        if (plugin.config().main().debug()) {
+            plugin.getLogger().info("[debug] " + player.getName() + " 施放 "
+                    + definition.id() + " 失败：" + reason);
+        }
+        return Result.fail(Msg.raw("skill.cast-failed", "reason", reason));
+    }
 
+    // ---------------- 启动校验 ----------------
     /** 校验 skills.yml 里所有 mythic-skill 在 MythicMobs 中存在，缺失只 WARN 不崩溃。 */
     public void validateMythicSkills() {
         if (!plugin.mythic().available()) {

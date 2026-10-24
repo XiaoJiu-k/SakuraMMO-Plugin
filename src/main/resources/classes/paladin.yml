@@ -5,6 +5,7 @@
 id: paladin
 display-name: 圣骑士
 role: 防御辅助 / 副坦
+icon: GOLDEN_SWORD
 description: 圣光护体，攻守兼备的副坦与辅助。
 
 stats:

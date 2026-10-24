@@ -5,6 +5,7 @@
 id: warlock
 display-name: 术士
 role: DoT / 召唤
+icon: WITHER_ROSE
 description: 以灵魂为契约的黑暗大师。
 
 stats:

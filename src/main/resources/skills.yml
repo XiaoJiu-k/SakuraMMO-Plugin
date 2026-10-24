@@ -20,6 +20,7 @@ ironwarden_shield_bash:
   display-name: 盾击
   class: ironwarden
   mythic-skill: ironwarden_shield_bash
+  icon: SHIELD
   resource: rage
   cost: 20
   cooldown: 6
@@ -31,6 +32,7 @@ ironwarden_guardian_bulwark:
   display-name: 守护壁垒
   class: ironwarden
   mythic-skill: ironwarden_guardian_bulwark
+  icon: IRON_CHESTPLATE
   resource: rage
   cost: 30
   cooldown: 18
@@ -42,6 +44,7 @@ ironwarden_iron_taunt:
   display-name: 铁壁嘲讽
   class: ironwarden
   mythic-skill: ironwarden_iron_taunt
+  icon: BELL
   resource: rage
   cost: 15
   cooldown: 12
@@ -53,6 +56,7 @@ ironwarden_ground_slam:
   display-name: 大地践踏
   class: ironwarden
   mythic-skill: ironwarden_ground_slam
+  icon: ANVIL
   resource: rage
   cost: 40
   cooldown: 25
@@ -64,6 +68,7 @@ ironwarden_last_stand:
   display-name: 背水一战
   class: ironwarden
   mythic-skill: ironwarden_last_stand
+  icon: TOTEM_OF_UNDYING
   resource: rage
   cost: 0
   cooldown: 90
@@ -76,6 +81,7 @@ paladin_judgement:
   display-name: 审判
   class: paladin
   mythic-skill: paladin_judgement
+  icon: GOLDEN_SWORD
   resource: holy_power
   cost: 1
   cooldown: 8
@@ -87,6 +93,7 @@ paladin_consecration:
   display-name: 奉献领域
   class: paladin
   mythic-skill: paladin_consecration
+  icon: GLOWSTONE
   resource: holy_power
   cost: 2
   cooldown: 15
@@ -98,6 +105,7 @@ paladin_holy_shield:
   display-name: 圣光壁垒
   class: paladin
   mythic-skill: paladin_holy_shield
+  icon: GOLDEN_CHESTPLATE
   resource: holy_power
   cost: 1
   cooldown: 20
@@ -109,6 +117,7 @@ paladin_divine_verdict:
   display-name: 神圣裁决
   class: paladin
   mythic-skill: paladin_divine_verdict
+  icon: BEACON
   resource: holy_power
   cost: 3
   cooldown: 40
@@ -120,6 +129,7 @@ paladin_guardian_light:
   display-name: 守护之光
   class: paladin
   mythic-skill: paladin_guardian_light
+  icon: LANTERN
   resource: holy_power
   cost: 0
   cooldown: 90
@@ -132,6 +142,7 @@ priest_flash_heal:
   display-name: 快速治疗
   class: priest
   mythic-skill: priest_flash_heal
+  icon: GLISTERING_MELON_SLICE
   resource: mana
   cost: 25
   cooldown: 1.5
@@ -143,6 +154,7 @@ priest_holy_surge:
   display-name: 圣光涌流
   class: priest
   mythic-skill: priest_holy_surge
+  icon: GLOWSTONE_DUST
   resource: mana
   cost: 55
   cooldown: 12
@@ -154,6 +166,7 @@ priest_renew:
   display-name: 恢复
   class: priest
   mythic-skill: priest_renew
+  icon: HONEY_BOTTLE
   resource: mana
   cost: 30
   cooldown: 10
@@ -165,6 +178,7 @@ priest_dispel:
   display-name: 驱散
   class: priest
   mythic-skill: priest_dispel
+  icon: MILK_BUCKET
   resource: mana
   cost: 25
   cooldown: 15
@@ -176,6 +190,7 @@ priest_mercy:
   display-name: 慈悲
   class: priest
   mythic-skill: priest_mercy
+  icon: GOLDEN_APPLE
   resource: mana
   cost: 0
   cooldown: 90
@@ -188,6 +203,7 @@ assassin_backstab:
   display-name: 背刺
   class: assassin
   mythic-skill: assassin_backstab
+  icon: IRON_SWORD
   resource: energy
   cost: 20
   cooldown: 5
@@ -199,6 +215,7 @@ assassin_blade_dance:
   display-name: 刀刃旋舞
   class: assassin
   mythic-skill: assassin_blade_dance
+  icon: DIAMOND_SWORD
   resource: energy
   cost: 35
   cooldown: 12
@@ -210,6 +227,7 @@ assassin_shadow_step:
   display-name: 暗影步
   class: assassin
   mythic-skill: assassin_shadow_step
+  icon: ENDER_PEARL
   resource: energy
   cost: 25
   cooldown: 15
@@ -221,6 +239,7 @@ assassin_eviscerate:
   display-name: 剔骨
   class: assassin
   mythic-skill: assassin_eviscerate
+  icon: NETHERITE_SWORD
   resource: energy
   cost: 45
   cooldown: 20
@@ -232,6 +251,7 @@ assassin_smoke_dodge:
   display-name: 烟雾闪避
   class: assassin
   mythic-skill: assassin_smoke_dodge
+  icon: PHANTOM_MEMBRANE
   resource: energy
   cost: 0
   cooldown: 90
@@ -244,6 +264,7 @@ ranger_aimed_shot:
   display-name: 瞄准射击
   class: ranger
   mythic-skill: ranger_aimed_shot
+  icon: ARROW
   resource: focus
   cost: 25
   cooldown: 8
@@ -255,6 +276,7 @@ ranger_frost_trap:
   display-name: 冰霜陷阱
   class: ranger
   mythic-skill: ranger_frost_trap
+  icon: BLUE_ICE
   resource: focus
   cost: 20
   cooldown: 18
@@ -266,6 +288,7 @@ ranger_multishot:
   display-name: 多重射击
   class: ranger
   mythic-skill: ranger_multishot
+  icon: SPECTRAL_ARROW
   resource: focus
   cost: 30
   cooldown: 12
@@ -277,6 +300,7 @@ ranger_hunters_mark:
   display-name: 猎人印记
   class: ranger
   mythic-skill: ranger_hunters_mark
+  icon: COMPASS
   resource: focus
   cost: 15
   cooldown: 10
@@ -288,6 +312,7 @@ ranger_steady_aim:
   display-name: 稳定瞄准
   class: ranger
   mythic-skill: ranger_steady_aim
+  icon: TARGET
   resource: focus
   cost: 0
   cooldown: 10
@@ -300,6 +325,7 @@ elementalist_fireball:
   display-name: 炎弹
   class: elementalist
   mythic-skill: elementalist_fireball
+  icon: FIRE_CHARGE
   resource: mana
   cost: 20
   cooldown: 2.2
@@ -311,6 +337,7 @@ elementalist_arcane_burst:
   display-name: 奥术爆发
   class: elementalist
   mythic-skill: elementalist_arcane_burst
+  icon: AMETHYST_SHARD
   resource: mana
   cost: 50
   cooldown: 12
@@ -322,6 +349,7 @@ elementalist_frost_nova:
   display-name: 冰霜新星
   class: elementalist
   mythic-skill: elementalist_frost_nova
+  icon: PACKED_ICE
   resource: mana
   cost: 35
   cooldown: 18
@@ -333,6 +361,7 @@ elementalist_lightning_chain:
   display-name: 闪电链
   class: elementalist
   mythic-skill: elementalist_lightning_chain
+  icon: LIGHTNING_ROD
   resource: mana
   cost: 60
   cooldown: 25
@@ -344,6 +373,7 @@ elementalist_resonance:
   display-name: 元素共鸣
   class: elementalist
   mythic-skill: elementalist_resonance
+  icon: AMETHYST_CLUSTER
   resource: mana
   cost: 0
   cooldown: 20
@@ -356,6 +386,7 @@ warlock_corruption:
   display-name: 腐蚀诅咒
   class: warlock
   mythic-skill: warlock_corruption
+  icon: FERMENTED_SPIDER_EYE
   resource: soul_shards
   cost: 1
   cooldown: 5
@@ -367,6 +398,7 @@ warlock_soul_burst:
   display-name: 灵魂爆裂
   class: warlock
   mythic-skill: warlock_soul_burst
+  icon: SOUL_LANTERN
   resource: soul_shards
   cost: 2
   cooldown: 12
@@ -378,6 +410,7 @@ warlock_drain_life:
   display-name: 吸取生命
   class: warlock
   mythic-skill: warlock_drain_life
+  icon: GHAST_TEAR
   resource: soul_shards
   cost: 1
   cooldown: 15
@@ -389,6 +422,7 @@ warlock_summon_imp:
   display-name: 召唤小鬼
   class: warlock
   mythic-skill: warlock_summon_imp
+  icon: MAGMA_CREAM
   resource: soul_shards
   cost: 3
   cooldown: 30
@@ -400,6 +434,7 @@ warlock_soul_harvest:
   display-name: 灵魂收割
   class: warlock
   mythic-skill: warlock_soul_harvest
+  icon: SOUL_TORCH
   resource: soul_shards
   cost: 0
   cooldown: 10

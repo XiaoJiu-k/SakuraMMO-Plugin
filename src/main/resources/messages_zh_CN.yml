@@ -58,6 +58,7 @@ skill:
   unbound-empty: "&7该槽位没有绑定技能。"
   passive-not-bindable: "&7&f{skill} &7是被动技能，无需绑定。"
   cast-failed: "&c技能施放失败：&f{reason}"
+  cast-manual-ok: "&a已施放 &f{skill}&a。"
   cast-ok-debug: "&8[debug] &7施放 &f{skill} &7→ MythicMobs &f{mythic} &7= {result}"
   mythic-missing: "&e技能 &f{skill} &e的 MythicMobs 定义 &f{mythic} &e不存在，已跳过。"
   not-owned: "&c你的职业 &f{class} &c没有技能 &f{skill}&c。"
@@ -83,5 +84,53 @@ debug:
   line-modifiers: "&7AuraSkills 修饰符：&f{modifiers}"
   line-hooks: "&7挂钩：&f{hooks}"
   line-bound: "&7绑定：&f{bound}"
+  line-interact: "&7交互事件计数：&f{interact} &7| 实体交互 &f{entity}"
   line-data: "&7数据文件：&f{file}"
   none: "&7无"
+
+# ============================================================
+# 菜单（按 F 打开的角色面板）
+# ============================================================
+menu:
+  disabled: "&c菜单已在配置里关闭（menu.enabled: false）。"
+  none: "&7无"
+  main-title: "&8SakuraMMO &7· &d角色面板"
+  class-title: "&8SakuraMMO &7· &d选择职业"
+  confirm-title: "&8SakuraMMO &7· &c确认切换"
+
+  class-name: "&d{display} &8({id})"
+  class-lore-role: "&7定位：&f{role}"
+  class-lore-desc: "&7{description}"
+  class-lore-stats: "&7属性：{stats}"
+  class-lore-resources: "&7资源：{resources}"
+  class-lore-current: "&a▶ 当前职业"
+  class-lore-click-select: "&e点击选择该职业"
+  class-lore-click-switch: "&e点击切换（需二次确认）"
+  class-lore-switch-hint: "&e点击打开职业选择"
+
+  resource-name: "{display} &f{current}&7/&f{max}"
+  resource-lore-regen: "&7自然恢复：&f{regen}/s"
+  resource-lore-events: "&7受击 &a+{on_damage} &7| 攻击 &a+{on_attack} &7| 击杀 &a+{on_kill}"
+
+  trigger-active: "主动"
+  trigger-passive: "被动"
+  skill-name: "&f{display}"
+  skill-lore-type: "&7类型：&f{type}"
+  skill-lore-cost: "&7消耗：&f{cost} &7{resource}"
+  skill-lore-cooldown: "&7冷却：&f{cooldown}s"
+  skill-lore-cooldown-now: "&c冷却中 &f{time}"
+  skill-lore-bound: "&a已绑定：槽位 {slot}"
+  skill-lore-unbound: "&7未绑定"
+  skill-lore-click-bind: "&e点击绑定到主手槽位"
+  skill-lore-passive: "&8被动技能，无需绑定"
+
+  button-switch-class: "&d切换职业"
+  button-switch-class-lore: "&7打开职业选择界面"
+  button-close: "&c关闭"
+  button-back: "&7返回"
+  button-confirm: "&a确认切换"
+  button-cancel: "&c取消"
+
+  confirm-lore: "&7确定要从 &f{old} &7切换到 &f{new} &7吗？"
+  confirm-cost: "&7费用：&f{cost}"
+  confirm-cooldown: "&c冷却中：&f{time}"

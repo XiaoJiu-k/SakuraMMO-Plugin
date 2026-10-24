@@ -30,7 +30,7 @@ import java.util.Map;
  */
 public final class SakuraCommand implements CommandExecutor, TabCompleter {
 
-    private static final List<String> ROOT = List.of("class", "resource", "bind", "unbind", "reload", "debug");
+    private static final List<String> ROOT = List.of("menu", "class", "resource", "bind", "unbind", "cast", "reload", "debug");
     private static final List<String> CLASS_SUB = List.of("list", "select", "switch", "info");
 
     private final SakuraMMOPlugin plugin;
@@ -48,6 +48,9 @@ public final class SakuraCommand implements CommandExecutor, TabCompleter {
         }
         String sub = args[0].toLowerCase(Locale.ROOT);
         switch (sub) {
+            case "menu" -> {
+                return handleMenu(sender);
+            }
             case "class" -> {
                 return handleClass(sender, args);
             }
@@ -59,6 +62,9 @@ public final class SakuraCommand implements CommandExecutor, TabCompleter {
             }
             case "unbind" -> {
                 return handleUnbind(sender);
+            }
+            case "cast" -> {
+                return handleCast(sender, args);
             }
             case "reload" -> {
                 return handleReload(sender);
@@ -75,6 +81,7 @@ public final class SakuraCommand implements CommandExecutor, TabCompleter {
 
     private void help(CommandSender sender, String label) {
         sender.sendMessage(Text.color("&8&m────────&r &dSakuraMMO &8&m────────"));
+        sender.sendMessage(Text.color("&f/" + label + " menu &8— &7打开角色面板（也可以直接按 F）"));
         sender.sendMessage(Text.color("&f/" + label + " class list &8— &7列出可选职业"));
         sender.sendMessage(Text.color("&f/" + label + " class select <id> &8— &7选择职业"));
         sender.sendMessage(Text.color("&f/" + label + " class switch <id> &8— &7切换职业"));
@@ -83,8 +90,24 @@ public final class SakuraCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(Text.color("&f/" + label + " resource set <player> <res> <val> &8— &7调试"));
         sender.sendMessage(Text.color("&f/" + label + " bind <skillId> &8— &7绑定技能到主手物品"));
         sender.sendMessage(Text.color("&f/" + label + " unbind &8— &7解除当前槽位绑定"));
+        sender.sendMessage(Text.color("&f/" + label + " cast <skillId> &8— &7直接施放（绕过绑定，调试用）"));
         sender.sendMessage(Text.color("&f/" + label + " reload &8— &7重载配置"));
         sender.sendMessage(Text.color("&f/" + label + " debug &8— &7调试信息"));
+    }
+
+    // ---------------- /sm menu ----------------
+
+    private boolean handleMenu(CommandSender sender) {
+        if (!(sender instanceof Player player)) {
+            Msg.send(sender, "general.player-only");
+            return true;
+        }
+        if (!plugin.config().main().menuEnabled()) {
+            Msg.send(sender, "menu.disabled");
+            return true;
+        }
+        plugin.menus().open(player);
+        return true;
     }
 
     // ---------------- /sm class ----------------
@@ -306,6 +329,29 @@ public final class SakuraCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
+    private boolean handleCast(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            Msg.send(sender, "general.player-only");
+            return true;
+        }
+        if (args.length < 2) {
+            player.sendMessage(Text.color("&7用法：&f/sm cast <skillId>"));
+            return true;
+        }
+        SkillDefinition definition = plugin.config().skill(args[1].toLowerCase(Locale.ROOT));
+        if (definition == null) {
+            Msg.send(sender, "skill.unknown", "id", args[1]);
+            return true;
+        }
+        SkillService.Result result = plugin.skills().cast(player, definition);
+        if (result.ok()) {
+            sender.sendMessage(Msg.get("skill.cast-manual-ok", "skill", definition.displayName()));
+        } else if (result.message() != null) {
+            sender.sendMessage(Msg.prefix() + result.message());
+        }
+        return true;
+    }
+
     // ---------------- /sm reload / debug ----------------
 
     private boolean handleReload(CommandSender sender) {
@@ -393,6 +439,9 @@ public final class SakuraCommand implements CommandExecutor, TabCompleter {
         }
         Msg.sendRaw(sender, "debug.line-bound",
                 "bound", bound.isEmpty() ? Msg.raw("debug.none") : bound.toString());
+        Msg.sendRaw(sender, "debug.line-interact",
+                "interact", String.valueOf(plugin.playerListener().interactCount()),
+                "entity", String.valueOf(plugin.playerListener().entityInteractCount()));
         Msg.sendRaw(sender, "debug.line-data",
                 "file", plugin.playerData().fileOf(player.getUniqueId()).getName());
         return true;
@@ -433,6 +482,22 @@ public final class SakuraCommand implements CommandExecutor, TabCompleter {
                 if (action.equals("info")) {
                     return filter(onlineNames(), args[2]);
                 }
+            }
+            return List.of();
+        }
+        if (sub.equals("cast")) {
+            if (args.length == 2) {
+                List<String> ids = new ArrayList<>();
+                if (sender instanceof Player player) {
+                    PlayerProfile profile = plugin.playerData().get(player.getUniqueId());
+                    if (profile != null && profile.hasClass()) {
+                        ClassDefinition definition = plugin.config().classOf(profile.classId());
+                        if (definition != null) {
+                            ids.addAll(definition.skills());
+                        }
+                    }
+                }
+                return filter(ids, args[1]);
             }
             return List.of();
         }

@@ -6,6 +6,7 @@
 id: assassin
 display-name: 刺客
 role: 近战物理 DPS
+icon: IRON_SWORD
 description: 阴影中的利刃，一击致命。
 
 stats:
