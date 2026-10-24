@@ -48,6 +48,12 @@ public final class CraftMenu extends Menu {
             i++;
         }
 
+        set(20, Items.of(Material.ANVIL, Msg.raw("craft.goto-upgrade"),
+                        List.of(Msg.raw("craft.goto-upgrade-lore"))),
+                p -> new UpgradeMenu(plugin, p).open());
+        set(22, Items.of(Material.SUNFLOWER, Msg.raw("craft.goto-redeem"),
+                        List.of(Msg.raw("craft.goto-redeem-lore"))),
+                p -> new RedeemMenu(plugin, p).open());
         set(23, Items.of(Material.ARROW, Msg.raw("menu.back-to-hub"), List.of()),
                 p -> new MainMenu(plugin, p).open());
         set(25, Items.of(Material.BARRIER, Msg.raw("menu.button-close"), List.of()),

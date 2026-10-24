@@ -57,6 +57,17 @@ public final class PlayerProfile {
     /** 已投天赋：节点 id → 等级。 */
     private final Map<String, Integer> talents = new LinkedHashMap<>();
 
+    // ---------------- 阶段四：代币 / 周常 / 赛季 ----------------
+
+    /** 兑换代币（周常/Boss/团本产出，赛季结束时清空）。 */
+    private int tokens = 0;
+    /** 周常周期标识（如 2026-W43）；与当前周期不同即视为需要重置（无遍历式重置）。 */
+    private String weeklyCycle = "";
+    /** 周常进度：任务 id → 计数。 */
+    private final Map<String, Integer> weeklyProgress = new LinkedHashMap<>();
+    /** 本周期已领取奖励的周常任务 id。 */
+    private final List<String> weeklyClaimed = new ArrayList<>();
+
     private volatile boolean dirty = false;
 
     public PlayerProfile(UUID uuid, String name) {
@@ -267,6 +278,41 @@ public final class PlayerProfile {
             sum += value;
         }
         return sum;
+    }
+
+    // ---------------- 阶段四访问器 ----------------
+
+    public int tokens() {
+        return tokens;
+    }
+
+    public void tokens(int value) {
+        this.tokens = Math.max(0, value);
+        markDirty();
+    }
+
+    public String weeklyCycle() {
+        return weeklyCycle;
+    }
+
+    public void weeklyCycle(String value) {
+        this.weeklyCycle = value == null ? "" : value;
+        markDirty();
+    }
+
+    public Map<String, Integer> weeklyProgress() {
+        return weeklyProgress;
+    }
+
+    public List<String> weeklyClaimed() {
+        return weeklyClaimed;
+    }
+
+    /** 周期切换：清空进度与领取记录（不发奖励，直接作废）。 */
+    public void resetWeekly() {
+        weeklyProgress.clear();
+        weeklyClaimed.clear();
+        markDirty();
     }
 
     public boolean dirty() {

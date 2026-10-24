@@ -256,6 +256,7 @@ public final class CraftingManager {
         player.getInventory().addItem(product).values()
                 .forEach(left -> player.getWorld().dropItemNaturally(player.getLocation(), left));
         Msg.send(player, "craft.done", "item", recipe.display());
+        plugin.weeklies().progress(player, "craft_item", 1);
         return product;
     }
 

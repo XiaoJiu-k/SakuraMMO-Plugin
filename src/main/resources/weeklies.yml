@@ -1,0 +1,43 @@
+# ============================================================
+# SakuraMMO 周常任务（阶段四）
+# 周期：自然周（重置点为周一凌晨 4:00，实现为 Cycle-ID——玩家触发时
+# 发现周期标识变化即清零，无遍历式重置，规避瞬时卡顿坑）
+# 进度持久化在 playerdata 的 weekly-progress / weekly-claimed。
+# ============================================================
+
+tasks:
+  kill_mobs:
+    display: 击杀野怪
+    icon: IRON_SWORD
+    goal: 50
+    reward-money: 200
+    reward-token: 1
+    reward-material: blackiron_ingot:2
+  clear_blackiron:
+    display: 通关黑铁王庭
+    icon: BRICKS
+    goal: 3
+    reward-money: 500
+    reward-token: 2
+    reward-material: mana_crystal:2
+  kill_boss:
+    display: 击杀副本 Boss
+    icon: WITHER_SKELETON_SKULL
+    goal: 5
+    reward-money: 400
+    reward-token: 2
+    reward-material: dark_core:1
+  craft_item:
+    display: 制造装备
+    icon: CRAFTING_TABLE
+    goal: 2
+    reward-money: 300
+    reward-token: 1
+    reward-material: blackiron_ingot:2
+  claim_chest:
+    display: 开启副本奖励箱
+    icon: CHEST
+    goal: 2
+    reward-money: 250
+    reward-token: 1
+    reward-material: mana_crystal:2

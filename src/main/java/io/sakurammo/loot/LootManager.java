@@ -193,6 +193,7 @@ public final class LootManager {
         Msg.send(player, "loot.claimed", "count", String.valueOf(items.size()));
         plugin.getLogger().info("[loot] " + player.getName() + " 领取 run=" + runId
                 + " 奖励 " + items.size() + " 件（已标记并落盘）");
+        plugin.weeklies().progress(player, "claim_chest", 1);
         return true;
     }
 

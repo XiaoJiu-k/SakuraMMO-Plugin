@@ -32,7 +32,8 @@ import java.util.Map;
 public final class SakuraCommand implements CommandExecutor, TabCompleter {
 
     private static final List<String> ROOT = List.of("menu", "skills", "class", "resource", "party", "dungeon",
-            "talent", "craft", "money", "sell", "addxp", "givemat",
+            "raid", "talent", "craft", "money", "sell", "addxp", "givemat",
+            "weekly", "upgrade", "redeem", "admin",
             "bind", "unbind", "binds", "cast", "reload", "debug");
     private static final List<String> CLASS_SUB = List.of("list", "select", "switch", "info", "reset");
     private static final List<String> PARTY_SUB = List.of("create", "invite", "accept", "leave", "kick", "disband", "info");
@@ -86,6 +87,36 @@ public final class SakuraCommand implements CommandExecutor, TabCompleter {
             case "givemat" -> {
                 return handleGiveMat(sender, args);
             }
+            case "raid" -> {
+                return handleRaid(sender, args);
+            }
+            case "weekly" -> {
+                if (!(sender instanceof Player player)) {
+                    Msg.send(sender, "general.player-only");
+                    return true;
+                }
+                new io.sakurammo.menu.WeeklyMenu(plugin, player).open();
+                return true;
+            }
+            case "upgrade" -> {
+                if (!(sender instanceof Player player)) {
+                    Msg.send(sender, "general.player-only");
+                    return true;
+                }
+                new io.sakurammo.menu.UpgradeMenu(plugin, player).open();
+                return true;
+            }
+            case "redeem" -> {
+                if (!(sender instanceof Player player)) {
+                    Msg.send(sender, "general.player-only");
+                    return true;
+                }
+                new io.sakurammo.menu.RedeemMenu(plugin, player).open();
+                return true;
+            }
+            case "admin" -> {
+                return handleAdmin(sender, args);
+            }
             case "bind" -> {
                 return handleBind(sender, args);
             }
@@ -129,6 +160,11 @@ public final class SakuraCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(Text.color("&f/" + label + " sell &8— &7卖出主手物品（底材不可卖）"));
         sender.sendMessage(Text.color("&f/" + label + " addxp <player> <amount> &8— &7&c[管理员]&7 调试加经验"));
         sender.sendMessage(Text.color("&f/" + label + " givemat <player> <id> <amount> &8— &7&c[管理员]&7 发放制造底材"));
+        sender.sendMessage(Text.color("&f/" + label + " raid create|invite|accept|start|leave|info &8— &7团本（10-20 人）"));
+        sender.sendMessage(Text.color("&f/" + label + " weekly &8— &7周常任务（周一 4:00 重置）"));
+        sender.sendMessage(Text.color("&f/" + label + " upgrade &8— &7装备升格（继承词条）"));
+        sender.sendMessage(Text.color("&f/" + label + " redeem &8— &7代币兑换保底装备"));
+        sender.sendMessage(Text.color("&f/" + label + " admin [reset <player> <weekly/economy/dungeon>] &8— &7&c[管理员]&7 GM 后台"));
         sender.sendMessage(Text.color("&f/" + label + " bind <skillId> <1|2|3|4> &8— &7技能绑定到 Shift+1~4"));
         sender.sendMessage(Text.color("&f/" + label + " unbind <1|2|3|4> &8— &7解绑按键"));
         sender.sendMessage(Text.color("&f/" + label + " binds &8— &7列出按键绑定与冷却"));
@@ -693,6 +729,91 @@ public final class SakuraCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
+    /** /sm raid —— 复用队伍系统（人数上限覆盖 20），开本走团本配置。 */
+    private boolean handleRaid(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            Msg.send(sender, "general.player-only");
+            return true;
+        }
+        String action = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "info";
+        switch (action) {
+            case "create" -> plugin.parties().create(player, plugin.config().main().raidMaxMembers());
+            case "invite" -> {
+                if (args.length < 3) {
+                    player.sendMessage(Text.color("&7用法：&f/sm raid invite <玩家>"));
+                } else {
+                    plugin.parties().invite(player, args[2]);
+                }
+            }
+            case "accept" -> plugin.parties().accept(player);
+            case "leave" -> plugin.parties().leave(player);
+            case "kick" -> {
+                if (args.length < 3) {
+                    player.sendMessage(Text.color("&7用法：&f/sm raid kick <玩家>"));
+                } else {
+                    plugin.parties().kick(player, args[2]);
+                }
+            }
+            case "disband" -> plugin.parties().disband(player);
+            case "info" -> plugin.parties().info(player);
+            case "start" -> {
+                if (args.length < 3) {
+                    player.sendMessage(Text.color("&7可用团本：&fraid_blackiron&7。用法：&f/sm raid start raid_blackiron"));
+                } else {
+                    plugin.instances().start(player, args[2].toLowerCase(Locale.ROOT));
+                }
+            }
+            default -> Msg.send(sender, "general.unknown-subcommand", "sub", "raid " + action);
+        }
+        return true;
+    }
+
+    /** /sm admin [reset <player> <weekly|economy|dungeon>]：GUI 或直接重置。 */
+    private boolean handleAdmin(CommandSender sender, String[] args) {
+        if (!sender.hasPermission("sakurammo.admin")) {
+            Msg.send(sender, "general.no-permission");
+            return true;
+        }
+        if (args.length >= 4 && args[1].equalsIgnoreCase("reset")) {
+            Player target = Bukkit.getPlayerExact(args[2]);
+            if (target == null) {
+                Msg.send(sender, "general.player-not-found", "player", args[2]);
+                return true;
+            }
+            var profile = plugin.playerData().getOrLoad(target);
+            switch (args[3].toLowerCase(Locale.ROOT)) {
+                case "weekly" -> {
+                    profile.resetWeekly();
+                    profile.weeklyCycle("");
+                    plugin.playerData().save(profile);
+                    sender.sendMessage(Text.color("&a已重置 &f" + target.getName() + " &a的周常进度。"));
+                }
+                case "economy" -> {
+                    plugin.economy().setBalance(target.getUniqueId(), 0.0D);
+                    sender.sendMessage(Text.color("&a已清零 &f" + target.getName() + " &a的金币。"));
+                }
+                case "dungeon" -> {
+                    var party = plugin.parties().partyOf(target.getUniqueId());
+                    if (party != null) {
+                        plugin.instances().forceEnd(party, "admin-reset");
+                        sender.sendMessage(Text.color("&a已强制结束 &f" + target.getName() + " &a的副本。"));
+                    } else {
+                        sender.sendMessage(Text.color("&7该玩家没有进行中的副本。"));
+                    }
+                }
+                default -> sender.sendMessage(Text.color("&c类型：weekly / economy / dungeon"));
+            }
+            plugin.audit().log(sender.getName(), "admin-reset", args[3] + " → " + target.getName());
+            return true;
+        }
+        if (sender instanceof Player player) {
+            new io.sakurammo.menu.AdminGUI(plugin, player).open();
+            return true;
+        }
+        sender.sendMessage(Text.color("&7控制台请用：&f/sm admin reset <player> <weekly|economy|dungeon>"));
+        return true;
+    }
+
     private boolean handleGiveMat(CommandSender sender, String[] args) {
         if (!sender.hasPermission("sakurammo.admin")) {
             Msg.send(sender, "general.no-permission");
@@ -931,6 +1052,30 @@ public final class SakuraCommand implements CommandExecutor, TabCompleter {
             }
             if (args.length == 3 && args[1].equalsIgnoreCase("valve")) {
                 return filter(List.of("1", "2"), args[2]);
+            }
+            return List.of();
+        }
+        if (sub.equals("raid")) {
+            if (args.length == 2) {
+                return filter(List.of("create", "invite", "accept", "leave", "kick", "disband", "info", "start"), args[1]);
+            }
+            if (args.length == 3 && (args[1].equalsIgnoreCase("invite") || args[1].equalsIgnoreCase("kick"))) {
+                return filter(onlineNames(), args[2]);
+            }
+            if (args.length == 3 && args[1].equalsIgnoreCase("start")) {
+                return filter(plugin.instances().availableDungeons(), args[2]);
+            }
+            return List.of();
+        }
+        if (sub.equals("admin")) {
+            if (args.length == 2 && "reset".startsWith(args[1].toLowerCase(Locale.ROOT))) {
+                return List.of("reset");
+            }
+            if (args.length == 3 && args[1].equalsIgnoreCase("reset")) {
+                return filter(onlineNames(), args[2]);
+            }
+            if (args.length == 4 && args[1].equalsIgnoreCase("reset")) {
+                return filter(List.of("weekly", "economy", "dungeon"), args[3]);
             }
             return List.of();
         }

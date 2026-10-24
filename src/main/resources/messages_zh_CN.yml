@@ -1,8 +1,3 @@
-# ============================================================
-# SakuraMMO 中文语言文件
-# 占位符用 {name} 形式，由代码替换
-# ============================================================
-
 prefix: "&8[&dSakura&8] &r"
 
 general:
@@ -275,7 +270,16 @@ dungeon:
   broadcast-cleared: "&d{dungeon} &7被一支队伍通关了！"
   info-idle: "&7当前队伍不在副本中。用 &f/sm dungeon start <id> &7开本（队长）。"
   info-running: "&8[&d副本&8] &7{dungeon} &8| &7阶段 &f{phase}&7/4 &8| &7run &f{run}"
-
+dungeon:
+  concurrent-limit: "&c当前活跃副本已达上限（&f{max}&c），请稍后再试。"
+loot:
+  already-claimed: "&c你本轮奖励已领取过，不能重复领取。"
+  claimed: "&a奖励已领取并登记（{count} 件），出本时自动放入背包。"
+  empty: "&c本轮没有可领取的奖励。"
+  mailbox-delivered: "&a副本奖励已发放（{count} 组）。"
+# ============================================================
+# 阶段三：天赋 / 制造 / 经济
+# ============================================================
 loot:
   already-claimed: "&c你本轮奖励已领取过，不能重复领取。"
   claimed: "&a奖励已领取并登记（{count} 件），出本时自动放入背包。"
@@ -285,6 +289,34 @@ loot:
 # ============================================================
 # 阶段三：天赋 / 制造 / 经济
 # ============================================================
+talent:
+  title: "&8SakuraMMO &7· &d天赋树"
+  header: "&d{display} &7· 可用点数 &f{points}&7/&f{earned}"
+  header-lore: "&7等级 &fLv.{level} &8| &7经验 &f{exp}&7/&f{need}"
+  node-name: "&b{name} &7{level}&8/&7{max}"
+  node-name-empty: "&8{name} &7{level}&8/&7{max}"
+  node-desc: "&7{desc}"
+  node-current: "&a当前加成：&f+{value}"
+  node-requirement: "&c需先点亮 &f{name} &c满 &f{points} &c点"
+  node-left-click: "&e左键加点"
+  node-right-click: "&e右键减点（免费）"
+  node-maxed: "&a已满级"
+  invested: "&a已点亮 &f{name} &7（{level} 级）"
+  refunded: "&e已从 &f{name} &e返还 1 点"
+  no-points: "&c没有可用天赋点（击杀/副本升级获得，Lv.10 起每 3 级 1 点）。"
+  maxed: "&c{name} 已满级。"
+  requirement: "&c需先点亮 &f{name} &c满 &f{points} &c点。"
+  wrong-class: "&c该天赋不属于你的职业。"
+  empty: "&c{name} 还没有投入点数。"
+  blocked-by-dependent: "&c无法减点：{name} 是其他已点节点的前置。"
+  points-gained: "&d升级获得 &f{points} &d天赋点（可用 &f{total}&d）。"
+  level-up: "&a等级提升到 &fLv.{level}&a！"
+  reset-button: "&d洗点（全额返还）"
+  reset-button-lore: "&7花费 &f{cost} &7金币，清空当前职业全部天赋"
+  nothing-to-reset: "&7没有已投入的天赋点。"
+  reset-done: "&a洗点完成：返还 &f{points} &a点（花费 &f{cost} &a金币）。"
+  reset-no-money: "&c洗点需要 &f{cost} &c金币，余额不足。"
+  reset-no-economy: "&c经济系统不可用，洗点功能已禁用。"
 talent:
   title: "&8SakuraMMO &7· &d天赋树"
   header: "&d{display} &7· 可用点数 &f{points}&7/&f{earned}"
@@ -327,12 +359,153 @@ craft:
   done: "&a制造成功：&f{item}"
   no-materials: "&c底材不足。"
   fee-charged: "&7支付手续费 &f{cost} &7金币。"
+craft:
+  title: "&8SakuraMMO &7· &d制造"
+  header: "&6金币：&f{balance}"
+  header-lore: "&7底材来自副本 Boss 与野外掉落；成品带固定词条。"
+  recipe-name: "{color}{display}"
+  line-ok: "&a{name} &7{x}&8/&7{y}"
+  line-missing: "&c{name} &7{have}&8/&7{need}"
+  line-fee: "&7手续费：&f{fee} &7金币"
+  click-craft: "&e左键制造"
+  cannot-craft: "&c材料或金币不足"
+  done: "&a制造成功：&f{item}"
+  no-materials: "&c底材不足。"
+  fee-charged: "&7支付手续费 &f{cost} &7金币。"
 
 economy:
   balance: "&6你的金币：&f{balance}"
+  weekly-reward: "&6周常奖励 &f+{amount} &6金币"
+  fee-charged: "&7支付手续费 &f{cost} &7金币。"
   kill-gain: "&7击杀奖励 &f+{amount} &7金币（余额 &f{balance}&7）"
   boss-gain: "&6Boss 击杀奖励 &f+{amount} &7金币（余额 &f{balance}&7）"
   sell-done: "&a卖出获得 &f{amount} &a金币（余额 &f{balance}&a）。"
   sell-unsellable: "&c主手物品无法卖出（底材/空手不可卖）。"
   not-enough: "&c金币不足：需要 &f{cost}&c，余额 &f{balance}&c。"
   disabled: "&c经济系统不可用，该功能已禁用。"
+# ============================================================
+# 阶段四：周常 / 追赶 / 团本 / 运营
+# ============================================================
+economy:
+  balance: "&6你的金币：&f{balance}"
+  weekly-reward: "&6周常奖励 &f+{amount} &6金币"
+  fee-charged: "&7支付手续费 &f{cost} &7金币。"
+  kill-gain: "&7击杀奖励 &f+{amount} &7金币（余额 &f{balance}&7）"
+  boss-gain: "&6Boss 击杀奖励 &f+{amount} &7金币（余额 &f{balance}&7）"
+  sell-done: "&a卖出获得 &f{amount} &a金币（余额 &f{balance}&a）。"
+  sell-unsellable: "&c主手物品无法卖出（底材/空手不可卖）。"
+  not-enough: "&c金币不足：需要 &f{cost}&c，余额 &f{balance}&c。"
+  disabled: "&c经济系统不可用，该功能已禁用。"
+
+# ============================================================
+# 阶段四：周常 / 追赶 / 团本 / 运营
+# ============================================================
+weekly:
+  title: "&8SakuraMMO &7· &d周常任务"
+  header: "&d周期 &f{cycle} &8| &e代币 &f{tokens}"
+  header-lore: "&7每周一凌晨 4:00 重置；奖励含代币（可兑换保底装备）。"
+  task-name: "&d{name} &f{current}&7/&f{goal}"
+  line-progress: "&7进度：&f{current}&7/&f{goal}"
+  line-claimed: "&7进度：&f{current}&7/&f{goal} &8（已领取）"
+  line-reward: "&6奖励：&f{money} 金币 + {token} 代币"
+  line-material: "&6加发：&f{name}×{amount}"
+  line-click-claim: "&e点击领取"
+  line-not-complete: "&7尚未达标"
+  line-claimed-mark: "&a已领取"
+  completed: "&d周常完成：&f{task} &7（/sm weekly 领取）"
+  claimed: "&a已领取 &f{task} &a奖励：&f{money} 金币 + {token} 代币"
+  already-claimed: "&c该任务本轮奖励已领取。"
+  not-complete: "&c未达标（{current}/{goal}）。"
+weekly:
+  title: "&8SakuraMMO &7· &d周常任务"
+  header: "&d周期 &f{cycle} &8| &e代币 &f{tokens}"
+  header-lore: "&7每周一凌晨 4:00 重置；奖励含代币（可兑换保底装备）。"
+  task-name: "&d{name} &f{current}&7/&f{goal}"
+  line-progress: "&7进度：&f{current}&7/&f{goal}"
+  line-claimed: "&7进度：&f{current}&7/&f{goal} &8（已领取）"
+  line-reward: "&6奖励：&f{money} 金币 + {token} 代币"
+  line-material: "&6加发：&f{name}×{amount}"
+  line-click-claim: "&e点击领取"
+  line-not-complete: "&7尚未达标"
+  line-claimed-mark: "&a已领取"
+  completed: "&d周常完成：&f{task} &7（/sm weekly 领取）"
+  claimed: "&a已领取 &f{task} &a奖励：&f{money} 金币 + {token} 代币"
+  already-claimed: "&c该任务本轮奖励已领取。"
+  not-complete: "&c未达标（{current}/{goal}）。"
+
+upgrade:
+  title: "&8SakuraMMO &7· &d装备升格"
+  header: "&e代币：&f{tokens}"
+  header-lore: "&7手持旧装备点击升格——保留原有全部词条。"
+  item-name: "{color}{display}"
+  line-from: "&7手持要求：&f{item}"
+  line-fee: "&7手续费：&f{fee} 金币"
+  line-token: "&e代币：&f{cost}"
+  line-click: "&e点击升格（需手持对应装备）"
+  done: "&a升格成功：&f{item}&a（词条已继承）"
+  wrong-hand: "&c请手持 &f{item} &c再升格。"
+  need-crafted: "&c该升格要求制造品。"
+  no-token: "&c代币不足：需要 &f{cost}&c，当前 &f{balance}&c。"
+upgrade:
+  title: "&8SakuraMMO &7· &d装备升格"
+  header: "&e代币：&f{tokens}"
+  header-lore: "&7手持旧装备点击升格——保留原有全部词条。"
+  item-name: "{color}{display}"
+  line-from: "&7手持要求：&f{item}"
+  line-fee: "&7手续费：&f{fee} 金币"
+  line-token: "&e代币：&f{cost}"
+  line-click: "&e点击升格（需手持对应装备）"
+  done: "&a升格成功：&f{item}&a（词条已继承）"
+  wrong-hand: "&c请手持 &f{item} &c再升格。"
+  need-crafted: "&c该升格要求制造品。"
+  no-token: "&c代币不足：需要 &f{cost}&c，当前 &f{balance}&c。"
+
+redeem:
+  title: "&8SakuraMMO &7· &d代币兑换"
+  header: "&e代币：&f{tokens}"
+  header-lore: "&7周常/Boss/团本产出的代币兑换保底装备（防脸黑）。"
+  line-token: "&e需代币：&f{cost}"
+  line-click: "&e点击兑换"
+  line-no-token: "&c代币不足"
+  done: "&a兑换成功：&f{item}&a（- {token} 代币，剩余 &f{balance}&a）"
+redeem:
+  title: "&8SakuraMMO &7· &d代币兑换"
+  header: "&e代币：&f{tokens}"
+  header-lore: "&7周常/Boss/团本产出的代币兑换保底装备（防脸黑）。"
+  line-token: "&e需代币：&f{cost}"
+  line-click: "&e点击兑换"
+  line-no-token: "&c代币不足"
+  done: "&a兑换成功：&f{item}&a（- {token} 代币，剩余 &f{balance}&a）"
+
+raid:
+  boss-dead: "&c团本 &f{boss} &c已被击倒！"
+  clear-tokens: "&6团本通关奖励：&f+{tokens} 代币"
+raid:
+  boss-dead: "&c团本 &f{boss} &c已被击倒！"
+  clear-tokens: "&6团本通关奖励：&f+{tokens} 代币"
+
+admin:
+  title: "&8SakuraMMO &7· &cGM 后台"
+  dashboard: "&c数据看板"
+  line-online: "&7在线人数：&f{count}"
+  line-instances: "&7活跃实例：&f{count}"
+  line-tps: "&7TPS（1m）：&f{tps}"
+  line-classes: "&7职业分布：&f{classes}"
+  line-minted: "&6金币累计产出：&f{amount}"
+  line-burned: "&6金币累计回收：&f{amount}"
+  giveall-money: "&6全服发金币"
+  giveall-material: "&6全服发底材"
+  confirm-first: "&e点击进入二次确认"
+  confirm-money: "&a全服发金币"
+  confirm-material: "&a全服发底材"
+  confirm-yes: "&a确认：{action}"
+  confirm-yes-lore: "&e再次点击执行"
+  confirm-no: "&c取消"
+  cleanup: "&b清理挂起实例世界"
+  cleanup-lore: "&7删除 instance_ 开头的孤儿目录"
+  cleanup-done: "&a已清理挂起实例目录：&f{count}"
+  players: "&e玩家管理"
+  players-lore: "&7用 /sm admin reset <玩家> <weekly|economy|dungeon>"
+  players-hint: "&7玩家重置：&f/sm admin reset <玩家> <weekly|economy|dungeon>"
+  giveall-money-broadcast: "&6管理员向全服发放了 &f{amount} &6金币！"
+  giveall-material-broadcast: "&6管理员向全服发放了制造底材！"

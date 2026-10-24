@@ -248,6 +248,16 @@ public final class PlayerDataManager {
                     profile.talents().put(key, tal.getInt(key));
                 }
             }
+            // 阶段四：代币 / 周常
+            profile.tokens(yaml.getInt("tokens", 0));
+            profile.weeklyCycle(yaml.getString("weekly-cycle", ""));
+            ConfigurationSection wk = yaml.getConfigurationSection("weekly-progress");
+            if (wk != null) {
+                for (String key : wk.getKeys(false)) {
+                    profile.weeklyProgress().put(key, wk.getInt(key));
+                }
+            }
+            profile.weeklyClaimed().addAll(yaml.getStringList("weekly-claimed"));
             profile.clean();
         }
         cache.put(uuid, profile);
@@ -295,6 +305,14 @@ public final class PlayerDataManager {
                 yaml.set("talents." + entry.getKey(), entry.getValue());
             }
         }
+        yaml.set("tokens", profile.tokens());
+        yaml.set("weekly-cycle", profile.weeklyCycle().isEmpty() ? null : profile.weeklyCycle());
+        if (!profile.weeklyProgress().isEmpty()) {
+            for (Map.Entry<String, Integer> entry : profile.weeklyProgress().entrySet()) {
+                yaml.set("weekly-progress." + entry.getKey(), entry.getValue());
+            }
+        }
+        yaml.set("weekly-claimed", profile.weeklyClaimed().isEmpty() ? null : profile.weeklyClaimed());
 
         try {
             yaml.save(tmpPath.toFile());

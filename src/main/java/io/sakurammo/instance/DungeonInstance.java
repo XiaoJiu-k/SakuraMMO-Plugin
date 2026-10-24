@@ -27,6 +27,9 @@ public final class DungeonInstance {
     /** 在副本世界内的玩家（在线）。 */
     public final Map<UUID, Boolean> inside = new ConcurrentHashMap<>();
 
+    /** 团本模式（Boss 同场全灭通关，无门/无敌链）。 */
+    public volatile boolean raidMode = false;
+
     public volatile int phase = 1;
     public volatile boolean boss2Unlocked = false;
     public volatile boolean boss3Unlocked = false;

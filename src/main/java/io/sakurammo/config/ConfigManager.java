@@ -56,6 +56,8 @@ public final class ConfigManager {
         }
         saveIfAbsent("talents.yml");
         saveIfAbsent("recipes.yml");
+        saveIfAbsent("weeklies.yml");
+        saveIfAbsent("upgrade.yml");
 
         String messagePath = "messages_" + main.language() + ".yml";
         mergeMessageDefaults(messagePath);
@@ -94,6 +96,10 @@ public final class ConfigManager {
                 Math.max(0.0D, cfg.getDouble("economy.boss-money-max", d.bossMoneyMax())),
                 Math.min(1.0D, Math.max(0.0D, cfg.getDouble("economy.sell-refund-rate", d.sellRefundRate()))),
                 Math.max(0, cfg.getInt("economy.xp-per-kill", d.xpPerKill())),
+                Math.max(0, cfg.getInt("dungeon.max-concurrent", d.maxConcurrentInstances())),
+                Math.max(10, cfg.getInt("raid.max-members", d.raidMaxMembers())),
+                Math.max(0, cfg.getInt("raid.clear-tokens", d.raidClearTokens())),
+                Math.max(0.0D, cfg.getDouble("admin.giveall-money", d.adminGiveallMoney())),
                 cfg.getBoolean("debug", d.debug())
         );
     }

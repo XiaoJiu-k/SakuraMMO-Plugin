@@ -28,6 +28,10 @@ public record MainConfig(
         double bossMoneyMax,
         double sellRefundRate,
         int xpPerKill,
+        int maxConcurrentInstances,
+        int raidMaxMembers,
+        int raidClearTokens,
+        double adminGiveallMoney,
         boolean debug
 ) {
 
@@ -36,7 +40,7 @@ public record MainConfig(
                 true, 10, "{display} &f{current}&7/&f{max} &8| &c❤{health}&7/&f{max_health}{skill_cd}", 10,
                 true, true, true, "GRAY_STAINED_GLASS_PANE", true,
                 5, 5, 5, true,
-                2.0D, 6.0D, 60.0D, 150.0D, 0.25D, 15, false);
+                2.0D, 6.0D, 60.0D, 150.0D, 0.25D, 15, 3, 20, 5, 100.0D, false);
     }
 
     public long switchCooldownMillis() {

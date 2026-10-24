@@ -1,5 +1,6 @@
 package io.sakurammo;
 
+import io.sakurammo.audit.AuditLogger;
 import io.sakurammo.classsystem.ClassManager;
 import io.sakurammo.command.SakuraCommand;
 import io.sakurammo.config.ConfigManager;
@@ -20,6 +21,8 @@ import io.sakurammo.player.PlayerDataManager;
 import io.sakurammo.resource.ResourceService;
 import io.sakurammo.skill.SkillService;
 import io.sakurammo.talent.TalentManager;
+import io.sakurammo.weekly.UpgradeManager;
+import io.sakurammo.weekly.WeeklyManager;
 import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
@@ -46,6 +49,9 @@ public final class SakuraMMOPlugin extends JavaPlugin {
     private EconomyManager economyManager;
     private TalentManager talents;
     private CraftingManager crafting;
+    private AuditLogger audit;
+    private WeeklyManager weeklies;
+    private UpgradeManager upgrades;
 
     private ClassManager classManager;
     private ResourceService resources;
@@ -74,6 +80,8 @@ public final class SakuraMMOPlugin extends JavaPlugin {
         aura = new AuraSkillsHook(this);
         keyBridge = new io.sakurammo.hook.KeyBridgeHook(this);
         mythic = new MythicMobsHook(this);
+        audit = new AuditLogger(this);
+        audit.start();
         economyManager = new EconomyManager(this);
         economyManager.hookVault(); // 外部经济优先；无则注册内置 SakuraEconomy
 
@@ -90,6 +98,9 @@ public final class SakuraMMOPlugin extends JavaPlugin {
         // 阶段三：天赋 / 制造
         talents = new TalentManager(this);
         crafting = new CraftingManager(this);
+        // 阶段四：周常 / 追赶
+        weeklies = new WeeklyManager(this);
+        upgrades = new UpgradeManager(this);
         instances.startupCleanup(); // 兜底：删除宕机残留的 instance_* 世界目录
         parties.recoverFromCrash(); // 上次非正常结束的副本队伍 → IDLE（玩家背包在其上线时恢复）
 
@@ -150,6 +161,7 @@ public final class SakuraMMOPlugin extends JavaPlugin {
         }
         if (economyManager != null) {
             economyManager.saveNow();
+            audit.stop();
         }
         PlaceholderBootstrap.unregister(placeholderHandle);
         placeholderHandle = null;
@@ -163,6 +175,10 @@ public final class SakuraMMOPlugin extends JavaPlugin {
         hud.start();
         classManager.refreshOnlinePlayers();
         skills.validateMythicSkills();
+        talents.load();
+        crafting.load();
+        weeklies.load();
+        upgrades.load();
         startAutoSave();
     }
 
@@ -222,6 +238,18 @@ public final class SakuraMMOPlugin extends JavaPlugin {
 
     public CraftingManager crafting() {
         return crafting;
+    }
+
+    public AuditLogger audit() {
+        return audit;
+    }
+
+    public WeeklyManager weeklies() {
+        return weeklies;
+    }
+
+    public UpgradeManager upgrades() {
+        return upgrades;
     }
 
     public ClassManager classManager() {

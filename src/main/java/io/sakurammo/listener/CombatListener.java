@@ -101,6 +101,10 @@ public final class CombatListener implements Listener {
             return;
         }
         plugin.resources().onKill(killer);
+        // 阶段四：周常「击杀野怪」（副本世界内的击杀不算野怪，Boss 由 InstanceManager 计）
+        if (plugin.instances().byWorld(event.getEntity().getWorld().getName()) == null) {
+            plugin.weeklies().progress(killer, "kill_mobs", 1);
+        }
         // 阶段三：击杀经验（与副本 Boss 经费在 InstanceManager 里单独发放）
         plugin.talents().addExperience(killer, plugin.config().main().xpPerKill());
         double money = plugin.economy().killMoneyMin()

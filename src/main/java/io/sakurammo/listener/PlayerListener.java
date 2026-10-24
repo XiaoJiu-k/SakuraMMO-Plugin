@@ -75,6 +75,8 @@ public final class PlayerListener implements Listener {
         plugin.instances().handleRejoin(player);
         // 阶段三：天赋 modifier 登录重挂（任务书坑表：离线修改上线要生效）
         plugin.talents().scheduleApplyOnJoin(player);
+        // 阶段四：周常 Cycle-ID 校验（跨周期登录即重置，无遍历）
+        plugin.weeklies().ensureCycle(player);
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

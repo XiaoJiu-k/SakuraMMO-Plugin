@@ -23,6 +23,9 @@ public final class Party {
     /** 离线计时：成员 uuid -> 最后在线时间。为空表示全员在线。 */
     private final Map<UUID, Long> offlineSince = new HashMap<>();
 
+    /** 人数上限覆盖（0 = 用全局 party.max-members；团本 20 人用）。 */
+    private int maxOverride = 0;
+
     private String state = "IDLE";
     private String dungeonId;
     private String runId;
@@ -64,6 +67,19 @@ public final class Party {
 
     public Map<UUID, Long> offlineSince() {
         return offlineSince;
+    }
+
+    public int maxOverride() {
+        return maxOverride;
+    }
+
+    public void maxOverride(int value) {
+        this.maxOverride = Math.max(0, value);
+    }
+
+    /** 生效人数上限。 */
+    public int effectiveMax(int globalMax) {
+        return maxOverride > 0 ? maxOverride : globalMax;
     }
 
     public String state() {

@@ -1,0 +1,46 @@
+# ============================================================
+# SakuraMMO 装备追赶（阶段四模块 C）
+# 升级：手持旧装备执行（复制旧物品全部 attribute modifiers 词条再叠加新词条）；
+# 兑换：代币（周常/Boss/团本产出）换保底装备。
+# ============================================================
+
+upgrades:
+  blackiron_to_shadow_sword:
+    display: 暗影长剑
+    item: IRON_SWORD
+    color: "&5"
+    from-item: IRON_SWORD          # 手持物品材质
+    require-crafted: false          # 是否要求为制造品
+    lore:
+      - "&7由黑铁长剑升格而来，保留原有词条"
+    attributes:                     # 在继承词条之上额外叠加
+      attack_damage: 4
+      attack_speed: 0.2
+    cost-materials:
+      dark_core: 3
+      mana_crystal: 2
+    fee: 200
+    token-cost: 1
+
+redeems:
+  shadow_chestplate:
+    display: 暗影胸甲
+    item: IRON_CHESTPLATE
+    color: "&5"
+    token-cost: 3
+    lore:
+      - "&7代币兑换的保底板甲"
+    attributes:
+      armor: 10
+      armor_toughness: 3
+      max_health: 6
+  shadow_sword:
+    display: 暗影之刃
+    item: IRON_SWORD
+    color: "&5"
+    token-cost: 3
+    lore:
+      - "&7代币兑换的保底武器"
+    attributes:
+      attack_damage: 10
+      attack_speed: -2.0

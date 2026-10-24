@@ -81,3 +81,18 @@ economy:
   sell-refund-rate: 0.25
   # 普通怪击杀经验
   xp-per-kill: 15
+
+# ==================== 阶段四：团本 / 运营 ====================
+raid:
+  # 团本队伍人数上限（/sm raid create）
+  max-members: 20
+  # 团本通关代币奖励（在线成员各一份）
+  clear-tokens: 5
+
+dungeon:
+  # 活跃实例总数上限（5人本+团本合计，防 OOM；0=不限）
+  max-concurrent: 3
+
+admin:
+  # /sm admin 全服发金币的金额（GUI 内二次确认后执行）
+  giveall-money: 100

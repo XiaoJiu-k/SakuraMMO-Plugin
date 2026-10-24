@@ -84,11 +84,17 @@ public final class PartyManager {
     // ---------------- 命令逻辑 ----------------
 
     public void create(Player player) {
+        create(player, 0);
+    }
+
+    /** 创建队伍（maxOverride>0 时覆盖全局上限——团本 20 人用）。 */
+    public void create(Player player, int maxOverride) {
         if (partyOf(player.getUniqueId()) != null) {
             Msg.send(player, "party.already-in");
             return;
         }
         Party party = new Party(UUID.randomUUID().toString(), player.getUniqueId());
+        party.maxOverride(maxOverride);
         parties.put(party.id(), party);
         saveAsync();
         Msg.send(player, "party.created", "max",
@@ -122,7 +128,7 @@ public final class PartyManager {
             Msg.send(leader, "party.invite-member", "player", target.getName());
             return;
         }
-        int max = plugin.config().main().partyMaxMembers();
+        int max = party.effectiveMax(plugin.config().main().partyMaxMembers());
         if (party.members().size() >= max) {
             Msg.send(leader, "party.full", "max", String.valueOf(max));
             return;
@@ -156,9 +162,9 @@ public final class PartyManager {
             saveAsync();
             return;
         }
-        if (found.members().size() >= plugin.config().main().partyMaxMembers()) {
+        if (found.members().size() >= found.effectiveMax(plugin.config().main().partyMaxMembers())) {
             Msg.send(player, "party.full", "max",
-                    String.valueOf(plugin.config().main().partyMaxMembers()));
+                    String.valueOf(found.effectiveMax(plugin.config().main().partyMaxMembers())));
             found.invites().remove(player.getUniqueId());
             saveAsync();
             return;
@@ -429,6 +435,7 @@ public final class PartyManager {
                         party.offlineSince().put(UUID.fromString(key), offline.getLong(key));
                     }
                 }
+                party.maxOverride(sec.getInt("max-override", 0));
                 party.state(sec.getString("state", "IDLE"));
                 party.dungeonId(sec.getString("dungeon"));
                 String runId = sec.getString("run-id");
@@ -466,6 +473,7 @@ public final class PartyManager {
                     yaml.set(base + "offline-since." + entry.getKey(), entry.getValue());
                 }
             }
+            yaml.set(base + "max-override", party.maxOverride() > 0 ? party.maxOverride() : null);
             yaml.set(base + "state", party.state());
             yaml.set(base + "dungeon", party.dungeonId());
             yaml.set(base + "run-id", party.runId());

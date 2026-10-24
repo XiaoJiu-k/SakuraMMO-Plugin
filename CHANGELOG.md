@@ -1,5 +1,15 @@
 # SakuraMMO 插件 · 版本变更记录
 
+## v4.0.0（2026-10-24）—— 阶段四
+
+- **团本**：`/sm raid`（复用队伍系统 20 人上限覆盖）、`raid_blackiron.yml`（mode: raid，三 Boss 同场全灭通关）、并发限制 `dungeon.max-concurrent: 3`、通关代币奖励
+- **周常**：`weeklies.yml` 5 任务（击杀/通关/制造/开箱），**Cycle-ID 零遍历重置**（周一 04:00 界），`/sm weekly` GUI 领奖（金币+代币+底材）
+- **追赶**：`upgrade.yml` 升格（旧装备词条全继承）/ 代币兑换保底装备；`/sm upgrade|redeem` GUI
+- **运营**：`/sm admin` GUI（看板：在线/实例/TPS/职业分布/金币产出回收累计；全服发奖两步确认；挂起实例清理）、`/sm admin reset <player> <weekly|economy|dungeon>`
+- **审计**：AuditLogger（logs/audit/ 按日滚动，异步批量刷盘）；经济 deposit/withdraw 全量审计 + 产出/回收计数器
+- PAPI：`%sakurammo_tokens%`
+- 修复：/sm reload 补周常/追赶/天赋/制造重载；messages 顶层段重建（22 段零重复）
+
 > 按 `docs/03-阶段计划与验收.md` 的阶段推进；详细实测数据见 `../tests/测试记录.md`（S-001~S-024）。
 
 ## v3.0.4（2026-10-24）

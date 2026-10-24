@@ -38,6 +38,9 @@ public final class EconomyManager implements io.sakurammo.hook.EconomyBridge {
     private SakuraEconomy provider;
     /** 外部 Vault 经济（EssentialsX 等）。 */
     private Economy external;
+    /** 经济审计：累计产出（deposit）/ 回收（withdraw），AdminGUI 看板用。 */
+    private volatile double totalMinted = 0.0D;
+    private volatile double totalBurned = 0.0D;
     /** 按名字查找的离线余额缓存（name → uuid），从存档扫描构建。 */
     private final Map<String, UUID> nameIndex = new ConcurrentHashMap<>();
 
@@ -93,26 +96,54 @@ public final class EconomyManager implements io.sakurammo.hook.EconomyBridge {
 
     @Override
     public boolean withdraw(OfflinePlayer player, double amount) {
+        boolean ok;
         if (external != null) {
             try {
-                return external.withdrawPlayer(player, amount).transactionSuccess();
+                ok = external.withdrawPlayer(player, amount).transactionSuccess();
             } catch (Throwable t) {
                 return false;
             }
+        } else {
+            ok = provider != null && withdraw(player.getUniqueId(), amount).transactionSuccess();
         }
-        return provider != null && withdraw(player.getUniqueId(), amount).transactionSuccess();
+        if (ok && amount > 0) {
+            totalBurned += amount;
+            audit().log(player.getName(), "economy-withdraw",
+                    Text.number(amount) + " balance=" + Text.number(balanceOf(player)));
+        }
+        return ok;
     }
 
     /** 存款（掉金/副本结算）。 */
     public boolean deposit(OfflinePlayer player, double amount) {
+        boolean ok;
         if (external != null) {
             try {
-                return external.depositPlayer(player, amount).transactionSuccess();
+                ok = external.depositPlayer(player, amount).transactionSuccess();
             } catch (Throwable t) {
                 return false;
             }
+        } else {
+            ok = provider != null && deposit(player.getUniqueId(), amount).transactionSuccess();
         }
-        return provider != null && deposit(player.getUniqueId(), amount).transactionSuccess();
+        if (ok && amount > 0) {
+            totalMinted += amount;
+            audit().log(player.getName(), "economy-deposit",
+                    Text.number(amount) + " balance=" + Text.number(balanceOf(player)));
+        }
+        return ok;
+    }
+
+    public double totalMinted() {
+        return totalMinted;
+    }
+
+    public double totalBurned() {
+        return totalBurned;
+    }
+
+    public io.sakurammo.audit.AuditLogger audit() {
+        return plugin.audit();
     }
 
     /** 当前余额（统一入口）。 */

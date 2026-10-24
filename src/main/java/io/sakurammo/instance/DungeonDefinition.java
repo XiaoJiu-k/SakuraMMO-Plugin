@@ -28,6 +28,8 @@ public final class DungeonDefinition {
 
     public final String id;
     public final String displayName;
+    /** dungeon = 5 人本（死亡链）；raid = 团本（Boss 同场全灭通关）。 */
+    public final String mode;
     public final int minMembers;
     public final int maxMembers;
     public final String templateWorld;
@@ -45,12 +47,13 @@ public final class DungeonDefinition {
                           List<int[]> valves, List<Double> phases) {
     }
 
-    private DungeonDefinition(String id, String displayName, int minMembers, int maxMembers,
+    private DungeonDefinition(String id, String displayName, String mode, int minMembers, int maxMembers,
                               String templateWorld, double[] spawn, String exitWorld, double[] exit,
                               BossDef boss1, BossDef boss2, BossDef boss3,
                               int[] chest, List<String> rewardItems) {
         this.id = id;
         this.displayName = displayName;
+        this.mode = mode;
         this.minMembers = minMembers;
         this.maxMembers = maxMembers;
         this.templateWorld = templateWorld;
@@ -114,6 +117,7 @@ public final class DungeonDefinition {
             return new DungeonDefinition(
                     yaml.getString("id", dungeonId),
                     yaml.getString("display-name", dungeonId),
+                    "raid".equalsIgnoreCase(yaml.getString("mode", "dungeon")) ? "raid" : "dungeon",
                     Math.max(1, yaml.getInt("min-members", 2)),
                     Math.max(1, yaml.getInt("max-members", 5)),
                     yaml.getString("template-world", "template_" + dungeonId.toLowerCase(Locale.ROOT)),

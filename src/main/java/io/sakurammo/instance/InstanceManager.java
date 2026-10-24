@@ -55,6 +55,11 @@ public final class InstanceManager {
         return worlds;
     }
 
+    /** 活跃实例数（并发限制与看板用）。 */
+    public int activeCount() {
+        return byRun.size();
+    }
+
     public DungeonInstance byWorld(String worldName) {
         return worldName == null ? null : byWorld.get(worldName);
     }
@@ -124,6 +129,12 @@ public final class InstanceManager {
         }
         if (!plugin.mythic().available() && !plugin.mythic().pluginPresent()) {
             Msg.send(leader, "dungeon.no-mythic");
+            return;
+        }
+        // 并发限制（阶段四模块 A：防 OOM，活跃实例总数上限）
+        int maxConcurrent = plugin.config().main().maxConcurrentInstances();
+        if (maxConcurrent > 0 && byRun.size() >= maxConcurrent) {
+            Msg.send(leader, "dungeon.concurrent-limit", "max", String.valueOf(maxConcurrent));
             return;
         }
 
@@ -201,6 +212,7 @@ public final class InstanceManager {
                               String runId, String worldName, List<Player> online) {
         DungeonInstance instance = new DungeonInstance(party.id(), runId, def.id, worldName,
                 def.boss2.valves().size(), def.boss3.phases().size());
+        instance.raidMode = "raid".equals(def.mode);
         byWorld.put(worldName, instance);
         byRun.put(runId, instance);
 
@@ -283,8 +295,8 @@ public final class InstanceManager {
                 fallback.setHealth(fallback.getMaxHealth());
                 found = fallback;
             }
-            if (index >= 2) {
-                found.setInvulnerable(true); // Boss2/3 先无敌，前置 Boss 死亡后解锁
+            if (index >= 2 && !instance.raidMode) {
+                found.setInvulnerable(true); // 5 人本：Boss2/3 先无敌；团本三 Boss 同场全激活
             }
             instance.bosses.put(found.getUniqueId(), index);
             plugin.getLogger().info("[dungeon] run=" + instance.runId + " Boss" + index + " 已就位："
@@ -474,6 +486,38 @@ public final class InstanceManager {
             return;
         }
         Party party = plugin.parties().byId(instance.partyId);
+        // 团本模式（阶段四）：Boss 同场无门/无敌链，全灭通关（在线成员代币 + 周常）
+        if (instance.raidMode) {
+            broadcast(party, "raid.boss-dead", "boss", "Boss" + index);
+            rewardBoss(party, entity.getWorld(), entity.getLocation(), index);
+            if (instance.bosses.isEmpty()) {
+                instance.phase = 4;
+                placeRewardChest(instance, def, entity.getWorld());
+                instance.chestPlaced = true;
+                if (party != null) {
+                    party.state("CLEARED");
+                    plugin.parties().saveAsync();
+                }
+                broadcast(party, "dungeon.cleared", "dungeon", def.displayName);
+                Bukkit.broadcastMessage(Msg.prefix() + Msg.raw("dungeon.broadcast-cleared",
+                        "dungeon", def.displayName));
+                for (UUID uuid : party.members()) {
+                    Player online = Bukkit.getPlayer(uuid);
+                    if (online != null && online.isOnline()) {
+                        PlayerProfile raidProfile = plugin.playerData().get(online.getUniqueId());
+                        if (raidProfile != null) {
+                            raidProfile.tokens(raidProfile.tokens()
+                                    + plugin.config().main().raidClearTokens());
+                            plugin.playerData().save(raidProfile);
+                            Msg.send(online, "raid.clear-tokens",
+                                    "tokens", String.valueOf(plugin.config().main().raidClearTokens()));
+                        }
+                        plugin.weeklies().progress(online, "clear_blackiron", 1);
+                    }
+                }
+            }
+            return;
+        }
         switch (index) {
             case 1 -> {
                 instance.phase = 2;
@@ -503,6 +547,12 @@ public final class InstanceManager {
                 Bukkit.broadcastMessage(Msg.prefix() + Msg.raw("dungeon.broadcast-cleared",
                         "dungeon", def.displayName));
                 rewardBoss(party, entity.getWorld(), entity.getLocation(), 3);
+                for (UUID uuid : party.members()) {
+                    Player online = Bukkit.getPlayer(uuid);
+                    if (online != null && online.isOnline()) {
+                        plugin.weeklies().progress(online, "clear_blackiron", 1);
+                    }
+                }
             }
             default -> {
             }
@@ -547,6 +597,7 @@ public final class InstanceManager {
                 continue;
             }
             plugin.talents().addExperience(online, xp);
+            plugin.weeklies().progress(online, "kill_boss", 1);
             double money = moneyMin + java.util.concurrent.ThreadLocalRandom.current().nextDouble()
                     * (moneyMax - moneyMin);
             plugin.economy().deposit(online, Math.round(money * 100.0D) / 100.0D, "economy.boss-gain");
