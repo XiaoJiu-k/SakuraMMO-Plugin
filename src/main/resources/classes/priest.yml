@@ -1,0 +1,32 @@
+# ============================================================
+# 牧师 priest —— 主治疗
+# 资源：法力 0–1000（自然恢复 5/s）
+# 注意：这里的「法力」是插件自有资源，与 AuraSkills 的 mana 是两套数值（P0 不联动）
+# ============================================================
+id: priest
+display-name: 牧师
+role: 主治疗
+description: 圣光的治疗者，团队的生命线。
+
+stats:
+  wisdom: 6
+  regeneration: 4
+  health: 2
+
+resources:
+  mana:
+    display-name: "&9法力"
+    max: 1000
+    initial: 1000
+    regen-per-second: 5
+
+skills:
+  - priest_flash_heal   # 快速治疗 主动·常规 1.5s/25
+  - priest_holy_surge   # 圣光涌流 主动·战术 12s/55
+  - priest_renew        # 恢复     主动·战术 10s/30
+  - priest_dispel       # 驱散     主动·战术 15s/25
+  - priest_mercy        # 慈悲     被动触发 90s/0
+
+equipment:
+  allowed: [ WAND, STAFF, CLOTH_ARMOR ]
+  forbidden: [ HEAVY_ARMOR, AXE ]

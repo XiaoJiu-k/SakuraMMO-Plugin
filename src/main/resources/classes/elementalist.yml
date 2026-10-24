@@ -1,0 +1,37 @@
+# ============================================================
+# 元素法师 elementalist —— 远程法系 DPS
+# 资源：法力 0–1000（自然恢复 6/s）
+# 副资源：元素共鸣 0–4 —— P0 只留字段（reserved: true），P1 填逻辑
+# ============================================================
+id: elementalist
+display-name: 元素法师
+role: 远程法系 DPS
+description: 操纵元素的毁灭者。
+
+stats:
+  wisdom: 6
+  crit_chance: 3
+  health: 1
+
+resources:
+  mana:
+    display-name: "&9法力"
+    max: 1000
+    initial: 1000
+    regen-per-second: 6
+  resonance:
+    display-name: "&d元素共鸣"
+    max: 4
+    initial: 0
+    reserved: true      # P1：交替元素攒共鸣 → 强化下一发
+
+skills:
+  - elementalist_fireball        # 炎弹     主动·常规 2.2s/20
+  - elementalist_arcane_burst    # 奥术爆发 主动·战术 12s/50
+  - elementalist_frost_nova      # 冰霜新星 主动·战术 18s/35
+  - elementalist_lightning_chain # 闪电链   主动·爆发 25s/60
+  - elementalist_resonance       # 元素共鸣 被动触发 20s/0
+
+equipment:
+  allowed: [ WAND, STAFF, CLOTH_ARMOR ]
+  forbidden: [ HEAVY_ARMOR, SWORD ]

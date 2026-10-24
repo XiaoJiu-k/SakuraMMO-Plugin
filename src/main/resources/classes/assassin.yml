@@ -1,0 +1,38 @@
+# ============================================================
+# 刺客 assassin —— 近战物理 DPS
+# 资源：能量 0–100（自然恢复 10/s，攻击 +5）
+# 副资源：连击点 0–5 —— P0 只留字段（reserved: true），P1 填逻辑
+# ============================================================
+id: assassin
+display-name: 刺客
+role: 近战物理 DPS
+description: 阴影中的利刃，一击致命。
+
+stats:
+  strength: 4
+  crit_chance: 5
+  speed: 3
+
+resources:
+  energy:
+    display-name: "&a能量"
+    max: 100
+    initial: 100
+    regen-per-second: 10
+    on-attack: 5
+  combo:
+    display-name: "&e连击点"
+    max: 5
+    initial: 0
+    reserved: true      # P1：攒点 / 终结技消耗
+
+skills:
+  - assassin_backstab     # 背刺     主动·常规 5s/20
+  - assassin_blade_dance  # 刀刃旋舞 主动·战术 12s/35
+  - assassin_shadow_step  # 暗影步   主动·战术 15s/25
+  - assassin_eviscerate   # 剔骨     主动·爆发 20s/45
+  - assassin_smoke_dodge  # 烟雾闪避 被动触发 90s/0
+
+equipment:
+  allowed: [ DAGGER, SWORD, LEATHER_ARMOR ]
+  forbidden: [ HEAVY_ARMOR, BOW ]

@@ -1,0 +1,36 @@
+# ============================================================
+# SakuraMMO 主配置
+# 改完用 /sm reload 生效（只重载配置，不重载玩家数据）
+# ============================================================
+
+# 语言文件：messages_<language>.yml
+language: zh_CN
+
+# 玩家数据定时保存间隔（秒）
+save-interval-seconds: 300
+
+# 切换职业冷却（小时）。0 = 不限制
+switch-cooldown-hours: 24
+
+# 切换职业费用（Vault 货币）。0 = 免费。无经济实现时自动跳过并打 INFO
+switch-cost: 0
+
+# 是否要求 sakurammo.class.<id> 权限才能选择该职业
+require-class-permission: false
+
+hud:
+  enabled: true
+  # 目前只支持 ACTIONBAR
+  type: ACTIONBAR
+  # 刷新间隔（tick）。20 tick = 1 秒
+  update-interval-ticks: 10
+  # 可用占位符：{display} {current} {max} {percent} {class} {class_display} {resource}
+  # {display} 取 classes/<id>.yml 里 resources.<res>.display-name（自带颜色）
+  format: "&b{display} &f{current}&7/&f{max}"
+
+resource:
+  # 资源自然恢复的 tick 间隔。10 tick = 0.5 秒（任务书 §3 P0-2 要求 0.5s）
+  tick-interval-ticks: 10
+
+# 调试模式：控制台输出 modifier 应用 / 技能施放细节
+debug: false

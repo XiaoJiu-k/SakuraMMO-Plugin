@@ -1,0 +1,32 @@
+# ============================================================
+# 游侠 ranger —— 远程物理 DPS
+# 资源：集中值 0–100（自然恢复 5/s）
+# ============================================================
+id: ranger
+display-name: 游侠
+role: 远程物理 DPS
+description: 百步穿杨的猎手，陷阱与箭术大师。
+
+stats:
+  strength: 3
+  crit_chance: 4
+  speed: 3
+  luck: 2
+
+resources:
+  focus:
+    display-name: "&b集中值"
+    max: 100
+    initial: 100
+    regen-per-second: 5
+
+skills:
+  - ranger_aimed_shot    # 瞄准射击 主动·常规 8s/25
+  - ranger_frost_trap    # 冰霜陷阱 主动·战术 18s/20
+  - ranger_multishot     # 多重射击 主动·战术 12s/30
+  - ranger_hunters_mark  # 猎人印记 主动·战术 10s/15
+  - ranger_steady_aim    # 稳定瞄准 被动触发 10s/0
+
+equipment:
+  allowed: [ BOW, CROSSBOW, DAGGER, LEATHER_ARMOR ]
+  forbidden: [ HEAVY_ARMOR ]

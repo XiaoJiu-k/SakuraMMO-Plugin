@@ -1,0 +1,76 @@
+plugins {
+    id 'java'
+}
+
+group = 'io.sakurammo'
+version = '1.0.0'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'papermc'
+        url = 'https://repo.papermc.io/repository/maven-public/'
+    }
+    // 备用：若需要 PAPI / Vault 走远程
+    maven {
+        name = 'placeholderapi'
+        url = 'https://repo.extendedclip.com/content/repositories/placeholderapi/'
+    }
+    maven {
+        name = 'jitpack'
+        url = 'https://jitpack.io'
+    }
+}
+
+dependencies {
+    // Paper API（唯一必须的远程依赖）
+    compileOnly 'io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT'
+
+    // 以下两个 API 体积小且随服务端分发，直接放 libs/ 本地引用，
+    // 避免依赖第三方仓库可达性（见任务书 §10 的兜底要求）。
+    compileOnly files(
+            'libs/PlaceholderAPI-2.12.3.jar',
+            'libs/Vault-1.7.3.jar'
+    )
+
+    // AuraSkills / MythicMobs 一律走反射，不做编译期依赖（见 README「为什么用反射」）
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 21
+}
+
+processResources {
+    def props = [version: project.version]
+    inputs.properties props
+    filteringCharset = 'UTF-8'
+    filesMatching('plugin.yml') {
+        expand props
+    }
+}
+
+jar {
+    archiveBaseName = 'SakuraMMO'
+    archiveVersion = project.version
+    archiveClassifier = ''
+    manifest {
+        attributes(
+                'Implementation-Title': 'SakuraMMO',
+                'Implementation-Version': project.version
+        )
+    }
+}
+
+// 构建产物统一叫 SakuraMMO-<version>.jar
+tasks.register('printJarPath') {
+    doLast {
+        println "JAR => ${tasks.jar.archiveFile.get().asFile.absolutePath}"
+    }
+}

@@ -1,0 +1,86 @@
+# ============================================================
+# SakuraMMO 中文语言文件
+# 占位符用 {name} 形式，由代码替换
+# ============================================================
+
+prefix: "&8[&dSakura&8] &r"
+
+general:
+  player-only: "&c该命令只能由玩家执行。"
+  player-not-found: "&c找不到在线玩家 &f{player}&c。"
+  no-permission: "&c权限不足。"
+  unknown-subcommand: "&c未知子命令 &f{sub}&c。用法：&f/sm <class|resource|bind|unbind|reload|debug>"
+
+class:
+  none-selected: "&7你还没有选择职业。用 &f/sm class list &7查看，&f/sm class select <id> &7选择。"
+  unknown: "&c没有这个职业：&f{id}&c。"
+  already-selected: "&c你已经选择了职业 &f{class}&c。切换请用 &f/sm class switch <id>&c。"
+  not-selected-yet: "&c你还没有选择职业，请用 &f/sm class select <id>&c。"
+  same-class: "&7你已经是 &f{class} &7了。"
+  not-permitted: "&c你没有选择职业 &f{class} &c的权限。"
+  selected: "&a职业已选择：&f{class} &7({role})"
+  switched: "&a职业已切换：&7{old} &a→ &f{new}"
+  switch-cooldown: "&c切换职业冷却中，还需 &f{time}&c。"
+  switch-cost-fail: "&c切换职业需要 &f{cost} &c金币，你的余额不足。"
+  list-header: "&8&m────────&r &d可选职业 &8&m────────"
+  list-entry: "&8· &f{id} &7— &f{display} &8({role})"
+  list-entry-current: "&8· &a{id} &7— &a{display} &8({role}) &a◀ 当前"
+  list-footer: "&8&m──────────────────────"
+  list-hint: "&7选择：&f/sm class select <id> &8| &7切换：&f/sm class switch <id>"
+  info-header: "&8&m────────&r &d职业信息 &8&m────────"
+  info-line-class: "&7职业：&f{display} &8({id})"
+  info-line-role: "&7定位：&f{role}"
+  info-line-desc: "&7说明：&f{description}"
+  info-line-stats: "&7属性加成：&f{stats}"
+  info-line-resources: "&7资源：&f{resources}"
+  info-line-skills: "&7技能：&f{skills}"
+  info-none: "&7该玩家尚未选择职业。"
+
+resource:
+  header: "&8&m────────&r &d资源 &8&m────────"
+  line: "&8· &f{display} &7: &f{current}&7/&f{max}"
+  current: "&f{display} &7: &f{current}&7/&f{max}"
+  unknown: "&c该职业没有资源 &f{id}&c。"
+  set: "&a已将 &f{player} &a的 &f{resource} &a设为 &f{value}&a。"
+  invalid-number: "&c数值不合法：&f{value}&c。"
+
+skill:
+  unknown: "&c没有这个技能：&f{id}&c。"
+  class-mismatch: "&c职业不符：&f{skill} &c属于 &f{owner}&c，你是 &f{player_class}&c。"
+  locked: "&c技能未解锁：&f{skill}&c。"
+  no-resource: "&c{resource}不足 &7(需要 {cost}，当前 {current})"
+  cooldown: "&c冷却中 &f{time}"
+  no-binding: "&7主手物品没有绑定技能。用 &f/sm bind <skillId> &7绑定。"
+  material-mismatch: "&c绑定技能属于 &f{material}&c，主手物品不匹配。"
+  bound: "&a已将 &f{skill} &a绑定到 &f{material}&a（槽位 {slot}）。"
+  unbound: "&7已解除槽位 {slot} 的技能绑定。"
+  unbound-empty: "&7该槽位没有绑定技能。"
+  passive-not-bindable: "&7&f{skill} &7是被动技能，无需绑定。"
+  cast-failed: "&c技能施放失败：&f{reason}"
+  cast-ok-debug: "&8[debug] &7施放 &f{skill} &7→ MythicMobs &f{mythic} &7= {result}"
+  mythic-missing: "&e技能 &f{skill} &e的 MythicMobs 定义 &f{mythic} &e不存在，已跳过。"
+  not-owned: "&c你的职业 &f{class} &c没有技能 &f{skill}&c。"
+
+hook:
+  aura-missing: "&e未检测到 AuraSkills，职业属性加成不可用（已降级）。"
+  mythic-missing: "&e未检测到 MythicMobs，技能无法施放（已降级）。"
+  papi-missing: "&e未检测到 PlaceholderAPI，占位符不可用。"
+  vault-missing: "&e未检测到 Vault 经济实现，切换职业费用检查已跳过。"
+  luckperms-missing: "&e未检测到 LuckPerms（P0 仅用于权限判断，可忽略）。"
+  aura-fallback: "&7AuraSkills API 不可用，改用命令通道应用修饰符。"
+
+reload:
+  start: "&7正在重载 SakuraMMO 配置…"
+  done: "&a重载完成：&f{classes} &a个职业、&f{skills} &a个技能、&f{messages} &a条消息。"
+  playerdata-untouched: "&8（玩家数据未重载，如需生效请让玩家重新登录）"
+
+debug:
+  header: "&8&m────────&r &d调试信息 &8&m────────"
+  line-class: "&7职业：&f{class}"
+  line-resources: "&7资源：&f{resources}"
+  line-cooldowns: "&7冷却中：&f{cooldowns}"
+  line-modifiers: "&7AuraSkills 修饰符：&f{modifiers}"
+  line-hooks: "&7挂钩：&f{hooks}"
+  line-bound: "&7绑定：&f{bound}"
+  line-data: "&7数据文件：&f{file}"
+  none: "&7无"

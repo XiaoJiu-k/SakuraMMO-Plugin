@@ -1,0 +1,42 @@
+name: SakuraMMO
+version: '${version}'
+main: io.sakurammo.SakuraMMOPlugin
+api-version: '1.21'
+authors: [ Sakura ]
+description: 职业 / 资源 / 技能入口层。技能效果由 MythicMobs 执行，属性聚合由 AuraSkills 负责。
+website: https://github.com/sakura/sakurammo
+
+# 全部软依赖：任一缺失时插件仍启动，对应功能降级并打 WARN
+softdepend:
+  - AuraSkills
+  - MythicMobs
+  - PlaceholderAPI
+  - LuckPerms
+  - Vault
+
+commands:
+  sm:
+    description: SakuraMMO 主命令
+    usage: /sm <class|resource|bind|unbind|reload|debug>
+    aliases: [ sakurammo ]
+    permission: sakurammo.use
+    permission-message: §c你没有权限使用该命令。
+
+permissions:
+  sakurammo.use:
+    description: 基础使用权限（查看与选择职业、绑定技能）
+    default: true
+  sakurammo.admin:
+    description: 管理权限（reload / resource set / debug）
+    default: op
+  sakurammo.class.*:
+    description: 可选职业通配权限；require-class-permission 为 true 时生效
+    default: true
+    children:
+      sakurammo.class.ironwarden: true
+      sakurammo.class.paladin: true
+      sakurammo.class.priest: true
+      sakurammo.class.assassin: true
+      sakurammo.class.ranger: true
+      sakurammo.class.elementalist: true
+      sakurammo.class.warlock: true

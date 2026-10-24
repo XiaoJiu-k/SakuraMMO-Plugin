@@ -1,0 +1,33 @@
+# ============================================================
+# 术士 warlock —— DoT / 召唤
+# 资源：灵魂碎片 0–5（攻击 +0.5 / 击杀 +1 / 自然恢复 0.2/s）
+# ============================================================
+id: warlock
+display-name: 术士
+role: DoT / 召唤
+description: 以灵魂为契约的黑暗大师。
+
+stats:
+  wisdom: 5
+  health: 3
+  regeneration: 2
+
+resources:
+  soul_shards:
+    display-name: "&5灵魂碎片"
+    max: 5
+    initial: 0
+    regen-per-second: 0.2
+    on-attack: 0.5
+    on-kill: 1
+
+skills:
+  - warlock_corruption   # 腐蚀诅咒 主动·常规 5s/1
+  - warlock_soul_burst   # 灵魂爆裂 主动·战术 12s/2
+  - warlock_drain_life   # 吸取生命 主动·战术 15s/1
+  - warlock_summon_imp   # 召唤小鬼 主动·战术 30s/3
+  - warlock_soul_harvest # 灵魂收割 被动触发 10s/0
+
+equipment:
+  allowed: [ WAND, STAFF, CLOTH_ARMOR ]
+  forbidden: [ HEAVY_ARMOR, SWORD ]

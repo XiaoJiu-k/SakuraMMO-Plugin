@@ -1,0 +1,408 @@
+# ============================================================
+# 技能入口定义（35 个 = 7 职业 × (4 主动 + 1 被动)）
+#
+# 本文件只描述「入口」：谁可以放、花多少资源、多长冷却、怎么触发。
+# 技能的实际效果一律由 MythicMobs 的 <mythic-skill> 执行，插件不重复实现。
+#
+# 字段
+#   display-name  显示名
+#   class         所属职业 id
+#   mythic-skill  MythicMobs 技能 id（必须存在，否则启动时 WARN）
+#   resource      消耗的资源 id（classes/<id>.yml 的 resources 段）
+#   cost          消耗量
+#   cooldown      冷却（秒，支持小数）
+#   trigger       RIGHT_CLICK / RIGHT_CLICK_AIR / RIGHT_CLICK_BLOCK / LEFT_CLICK / PASSIVE
+#   unlock.permission  解锁权限（留空表示只要职业匹配就解锁）
+# ============================================================
+
+# ---------------- 铁卫 ironwarden（怒气 0–100） ----------------
+ironwarden_shield_bash:
+  display-name: 盾击
+  class: ironwarden
+  mythic-skill: ironwarden_shield_bash
+  resource: rage
+  cost: 20
+  cooldown: 6
+  trigger: RIGHT_CLICK
+  unlock:
+    permission: sakurammo.skill.ironwarden_shield_bash
+
+ironwarden_guardian_bulwark:
+  display-name: 守护壁垒
+  class: ironwarden
+  mythic-skill: ironwarden_guardian_bulwark
+  resource: rage
+  cost: 30
+  cooldown: 18
+  trigger: RIGHT_CLICK
+  unlock:
+    permission: sakurammo.skill.ironwarden_guardian_bulwark
+
+ironwarden_iron_taunt:
+  display-name: 铁壁嘲讽
+  class: ironwarden
+  mythic-skill: ironwarden_iron_taunt
+  resource: rage
+  cost: 15
+  cooldown: 12
+  trigger: RIGHT_CLICK
+  unlock:
+    permission: sakurammo.skill.ironwarden_iron_taunt
+
+ironwarden_ground_slam:
+  display-name: 大地践踏
+  class: ironwarden
+  mythic-skill: ironwarden_ground_slam
+  resource: rage
+  cost: 40
+  cooldown: 25
+  trigger: RIGHT_CLICK
+  unlock:
+    permission: sakurammo.skill.ironwarden_ground_slam
+
+ironwarden_last_stand:
+  display-name: 背水一战
+  class: ironwarden
+  mythic-skill: ironwarden_last_stand
+  resource: rage
+  cost: 0
+  cooldown: 90
+  trigger: PASSIVE
+  unlock:
+    permission: sakurammo.skill.ironwarden_last_stand
+
+# ---------------- 圣骑士 paladin（圣能 0–5） ----------------
+paladin_judgement:
+  display-name: 审判
+  class: paladin
+  mythic-skill: paladin_judgement
+  resource: holy_power
+  cost: 1
+  cooldown: 8
+  trigger: RIGHT_CLICK
+  unlock:
+    permission: sakurammo.skill.paladin_judgement
+
+paladin_consecration:
+  display-name: 奉献领域
+  class: paladin
+  mythic-skill: paladin_consecration
+  resource: holy_power
+  cost: 2
+  cooldown: 15
+  trigger: RIGHT_CLICK
+  unlock:
+    permission: sakurammo.skill.paladin_consecration
+
+paladin_holy_shield:
+  display-name: 圣光壁垒
+  class: paladin
+  mythic-skill: paladin_holy_shield
+  resource: holy_power
+  cost: 1
+  cooldown: 20
+  trigger: RIGHT_CLICK
+  unlock:
+    permission: sakurammo.skill.paladin_holy_shield
+
+paladin_divine_verdict:
+  display-name: 神圣裁决
+  class: paladin
+  mythic-skill: paladin_divine_verdict
+  resource: holy_power
+  cost: 3
+  cooldown: 40
+  trigger: RIGHT_CLICK
+  unlock:
+    permission: sakurammo.skill.paladin_divine_verdict
+
+paladin_guardian_light:
+  display-name: 守护之光
+  class: paladin
+  mythic-skill: paladin_guardian_light
+  resource: holy_power
+  cost: 0
+  cooldown: 90
+  trigger: PASSIVE
+  unlock:
+    permission: sakurammo.skill.paladin_guardian_light
+
+# ---------------- 牧师 priest（法力 0–1000） ----------------
+priest_flash_heal:
+  display-name: 快速治疗
+  class: priest
+  mythic-skill: priest_flash_heal
+  resource: mana
+  cost: 25
+  cooldown: 1.5
+  trigger: RIGHT_CLICK
+  unlock:
+    permission: sakurammo.skill.priest_flash_heal
+
+priest_holy_surge:
+  display-name: 圣光涌流
+  class: priest
+  mythic-skill: priest_holy_surge
+  resource: mana
+  cost: 55
+  cooldown: 12
+  trigger: RIGHT_CLICK
+  unlock:
+    permission: sakurammo.skill.priest_holy_surge
+
+priest_renew:
+  display-name: 恢复
+  class: priest
+  mythic-skill: priest_renew
+  resource: mana
+  cost: 30
+  cooldown: 10
+  trigger: RIGHT_CLICK
+  unlock:
+    permission: sakurammo.skill.priest_renew
+
+priest_dispel:
+  display-name: 驱散
+  class: priest
+  mythic-skill: priest_dispel
+  resource: mana
+  cost: 25
+  cooldown: 15
+  trigger: RIGHT_CLICK
+  unlock:
+    permission: sakurammo.skill.priest_dispel
+
+priest_mercy:
+  display-name: 慈悲
+  class: priest
+  mythic-skill: priest_mercy
+  resource: mana
+  cost: 0
+  cooldown: 90
+  trigger: PASSIVE
+  unlock:
+    permission: sakurammo.skill.priest_mercy
+
+# ---------------- 刺客 assassin（能量 0–100） ----------------
+assassin_backstab:
+  display-name: 背刺
+  class: assassin
+  mythic-skill: assassin_backstab
+  resource: energy
+  cost: 20
+  cooldown: 5
+  trigger: RIGHT_CLICK
+  unlock:
+    permission: sakurammo.skill.assassin_backstab
+
+assassin_blade_dance:
+  display-name: 刀刃旋舞
+  class: assassin
+  mythic-skill: assassin_blade_dance
+  resource: energy
+  cost: 35
+  cooldown: 12
+  trigger: RIGHT_CLICK
+  unlock:
+    permission: sakurammo.skill.assassin_blade_dance
+
+assassin_shadow_step:
+  display-name: 暗影步
+  class: assassin
+  mythic-skill: assassin_shadow_step
+  resource: energy
+  cost: 25
+  cooldown: 15
+  trigger: RIGHT_CLICK
+  unlock:
+    permission: sakurammo.skill.assassin_shadow_step
+
+assassin_eviscerate:
+  display-name: 剔骨
+  class: assassin
+  mythic-skill: assassin_eviscerate
+  resource: energy
+  cost: 45
+  cooldown: 20
+  trigger: RIGHT_CLICK
+  unlock:
+    permission: sakurammo.skill.assassin_eviscerate
+
+assassin_smoke_dodge:
+  display-name: 烟雾闪避
+  class: assassin
+  mythic-skill: assassin_smoke_dodge
+  resource: energy
+  cost: 0
+  cooldown: 90
+  trigger: PASSIVE
+  unlock:
+    permission: sakurammo.skill.assassin_smoke_dodge
+
+# ---------------- 游侠 ranger（集中值 0–100） ----------------
+ranger_aimed_shot:
+  display-name: 瞄准射击
+  class: ranger
+  mythic-skill: ranger_aimed_shot
+  resource: focus
+  cost: 25
+  cooldown: 8
+  trigger: RIGHT_CLICK
+  unlock:
+    permission: sakurammo.skill.ranger_aimed_shot
+
+ranger_frost_trap:
+  display-name: 冰霜陷阱
+  class: ranger
+  mythic-skill: ranger_frost_trap
+  resource: focus
+  cost: 20
+  cooldown: 18
+  trigger: RIGHT_CLICK
+  unlock:
+    permission: sakurammo.skill.ranger_frost_trap
+
+ranger_multishot:
+  display-name: 多重射击
+  class: ranger
+  mythic-skill: ranger_multishot
+  resource: focus
+  cost: 30
+  cooldown: 12
+  trigger: RIGHT_CLICK
+  unlock:
+    permission: sakurammo.skill.ranger_multishot
+
+ranger_hunters_mark:
+  display-name: 猎人印记
+  class: ranger
+  mythic-skill: ranger_hunters_mark
+  resource: focus
+  cost: 15
+  cooldown: 10
+  trigger: RIGHT_CLICK
+  unlock:
+    permission: sakurammo.skill.ranger_hunters_mark
+
+ranger_steady_aim:
+  display-name: 稳定瞄准
+  class: ranger
+  mythic-skill: ranger_steady_aim
+  resource: focus
+  cost: 0
+  cooldown: 10
+  trigger: PASSIVE
+  unlock:
+    permission: sakurammo.skill.ranger_steady_aim
+
+# ---------------- 元素法师 elementalist（法力 0–1000） ----------------
+elementalist_fireball:
+  display-name: 炎弹
+  class: elementalist
+  mythic-skill: elementalist_fireball
+  resource: mana
+  cost: 20
+  cooldown: 2.2
+  trigger: RIGHT_CLICK
+  unlock:
+    permission: sakurammo.skill.elementalist_fireball
+
+elementalist_arcane_burst:
+  display-name: 奥术爆发
+  class: elementalist
+  mythic-skill: elementalist_arcane_burst
+  resource: mana
+  cost: 50
+  cooldown: 12
+  trigger: RIGHT_CLICK
+  unlock:
+    permission: sakurammo.skill.elementalist_arcane_burst
+
+elementalist_frost_nova:
+  display-name: 冰霜新星
+  class: elementalist
+  mythic-skill: elementalist_frost_nova
+  resource: mana
+  cost: 35
+  cooldown: 18
+  trigger: RIGHT_CLICK
+  unlock:
+    permission: sakurammo.skill.elementalist_frost_nova
+
+elementalist_lightning_chain:
+  display-name: 闪电链
+  class: elementalist
+  mythic-skill: elementalist_lightning_chain
+  resource: mana
+  cost: 60
+  cooldown: 25
+  trigger: RIGHT_CLICK
+  unlock:
+    permission: sakurammo.skill.elementalist_lightning_chain
+
+elementalist_resonance:
+  display-name: 元素共鸣
+  class: elementalist
+  mythic-skill: elementalist_resonance
+  resource: mana
+  cost: 0
+  cooldown: 20
+  trigger: PASSIVE
+  unlock:
+    permission: sakurammo.skill.elementalist_resonance
+
+# ---------------- 术士 warlock（灵魂碎片 0–5） ----------------
+warlock_corruption:
+  display-name: 腐蚀诅咒
+  class: warlock
+  mythic-skill: warlock_corruption
+  resource: soul_shards
+  cost: 1
+  cooldown: 5
+  trigger: RIGHT_CLICK
+  unlock:
+    permission: sakurammo.skill.warlock_corruption
+
+warlock_soul_burst:
+  display-name: 灵魂爆裂
+  class: warlock
+  mythic-skill: warlock_soul_burst
+  resource: soul_shards
+  cost: 2
+  cooldown: 12
+  trigger: RIGHT_CLICK
+  unlock:
+    permission: sakurammo.skill.warlock_soul_burst
+
+warlock_drain_life:
+  display-name: 吸取生命
+  class: warlock
+  mythic-skill: warlock_drain_life
+  resource: soul_shards
+  cost: 1
+  cooldown: 15
+  trigger: RIGHT_CLICK
+  unlock:
+    permission: sakurammo.skill.warlock_drain_life
+
+warlock_summon_imp:
+  display-name: 召唤小鬼
+  class: warlock
+  mythic-skill: warlock_summon_imp
+  resource: soul_shards
+  cost: 3
+  cooldown: 30
+  trigger: RIGHT_CLICK
+  unlock:
+    permission: sakurammo.skill.warlock_summon_imp
+
+warlock_soul_harvest:
+  display-name: 灵魂收割
+  class: warlock
+  mythic-skill: warlock_soul_harvest
+  resource: soul_shards
+  cost: 0
+  cooldown: 10
+  trigger: PASSIVE
+  unlock:
+    permission: sakurammo.skill.warlock_soul_harvest

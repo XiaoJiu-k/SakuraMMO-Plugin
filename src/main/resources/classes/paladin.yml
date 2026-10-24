@@ -1,0 +1,33 @@
+# ============================================================
+# 圣骑士 paladin —— 防御辅助 / 副坦
+# 资源：圣能 0–5（攻击 +1，消耗 1–3）
+# ============================================================
+id: paladin
+display-name: 圣骑士
+role: 防御辅助 / 副坦
+description: 圣光护体，攻守兼备的副坦与辅助。
+
+stats:
+  health: 4
+  toughness: 3
+  strength: 2
+  wisdom: 2
+
+resources:
+  holy_power:
+    display-name: "&e圣能"
+    max: 5
+    initial: 0
+    regen-per-second: 0
+    on-attack: 1
+
+skills:
+  - paladin_judgement       # 审判     主动·常规 8s/1
+  - paladin_consecration    # 奉献领域 主动·战术 15s/2
+  - paladin_holy_shield     # 圣光壁垒 主动·战术 20s/1
+  - paladin_divine_verdict  # 神圣裁决 主动·爆发 40s/3
+  - paladin_guardian_light  # 守护之光 被动触发 90s/0
+
+equipment:
+  allowed: [ SWORD, SHIELD, HEAVY_ARMOR ]
+  forbidden: [ BOW ]
