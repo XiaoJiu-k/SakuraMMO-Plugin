@@ -94,6 +94,30 @@ public final class CombatListener implements Listener {
         }
     }
 
+    /**
+     * 掉落控制（阶段四用户需求）：副本世界外的生物死亡<b>无掉落物、无经验球</b>；
+     * 副本世界内保留掉落，并对 RPGLoot 生成的英文词条物品汉化。玩家死亡不干预。
+     */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onWildDropClear(EntityDeathEvent event) {
+        if (event.getEntity() instanceof Player) {
+            return; // 玩家死亡掉落保留原版
+        }
+        boolean inDungeon = plugin.instances().byWorld(event.getEntity().getWorld().getName()) != null;
+        if (!inDungeon) {
+            event.getDrops().clear();
+            event.setDroppedExp(0);
+            return;
+        }
+        for (org.bukkit.inventory.ItemStack drop : event.getDrops()) {
+            if (io.sakurammo.loot.RpgLootTranslator.translate(drop)) {
+                if (plugin.config().main().debug()) {
+                    plugin.getLogger().info("[debug] RPGLoot 物品已汉化：" + drop.getType());
+                }
+            }
+        }
+    }
+
     @EventHandler(priority = EventPriority.MONITOR)
     public void onEntityDeath(EntityDeathEvent event) {
         Player killer = event.getEntity().getKiller();

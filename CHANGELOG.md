@@ -1,5 +1,11 @@
 # SakuraMMO 插件 · 版本变更记录
 
+## v4.0.4（2026-10-25）
+
+- **掉落控制**：副本世界外生物死亡无掉落物/无经验球（玩家死亡保留）；副本内保留并对 RPGLoot 英文词条物品自动汉化（RpgLootTranslator：稀有度/词条/套装词映射；随机生成名保留）
+- `/sm admin translatex`：手持物品 RPGLoot 词条汉化（测试/修正两用）
+- 术士小鬼 AI：AITargetSelectors=attackers+monsters（打怪/反击，不打玩家）
+
 ## v4.0.3（2026-10-25）
 
 - 菜单全中文化：Text.statCN/attrCN 映射（9 属性 + 6 词条），替换职业面板/职业选择//sm class info/升格继承/兑换预览/看板职业分布共 7 处英文 id 显示

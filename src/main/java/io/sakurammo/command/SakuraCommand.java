@@ -115,6 +115,9 @@ public final class SakuraCommand implements CommandExecutor, TabCompleter {
                 return true;
             }
             case "admin" -> {
+                if (args.length >= 2 && args[1].equalsIgnoreCase("translatex")) {
+                    return handleTranslateX(sender);
+                }
                 return handleAdmin(sender, args);
             }
             case "bind" -> {
@@ -811,6 +814,24 @@ public final class SakuraCommand implements CommandExecutor, TabCompleter {
             return true;
         }
         sender.sendMessage(Text.color("&7控制台请用：&f/sm admin reset <player> <weekly|economy|dungeon>"));
+        return true;
+    }
+
+    /** /sm admin translatex：手持物品的 RPGLoot 英文词条汉化（测试/修正两用）。 */
+    private boolean handleTranslateX(CommandSender sender) {
+        if (!sender.hasPermission("sakurammo.admin")) {
+            Msg.send(sender, "general.no-permission");
+            return true;
+        }
+        if (!(sender instanceof Player player)) {
+            Msg.send(sender, "general.player-only");
+            return true;
+        }
+        ItemStack hand = player.getInventory().getItemInMainHand();
+        boolean changed = io.sakurammo.loot.RpgLootTranslator.translate(hand);
+        sender.sendMessage(Text.color(changed
+                ? "&a已将主手物品的英文词条汉化。"
+                : "&7主手物品没有需要汉化的英文词条。"));
         return true;
     }
 
