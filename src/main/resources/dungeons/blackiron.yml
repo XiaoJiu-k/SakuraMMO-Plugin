@@ -1,6 +1,7 @@
 # 黑铁王庭（占位坐标——模板自动生成时插件会按实测 Y 重写本文件）
 id: blackiron
 display-name: 黑铁王庭
+min-level: 40
 min-members: 1
 max-members: 5
 template-world: template_blackiron
@@ -12,4 +13,4 @@ bosses:
   3: {mob: ForgemasterVhal, x: 0.5, y: -59, z: -12.5, phases: [0.7, 0.35]}
 reward:
   chest: "0,-58,-16"
-  items: ["IRON_SWORD:1", "GOLDEN_APPLE:2", "EXPERIENCE_BOTTLE:5"]
+  items: ["GOLDEN_APPLE:3", "EXPERIENCE_BOTTLE:5"]

@@ -130,6 +130,77 @@ public final class BossDropService {
         }
     }
 
+    /**
+     * 给菜单用的掉落说明（每行一句）。
+     * 例：`必掉：粗糙矿晶 ×2-4`、`装备：矿工短剑 12%、矿工头盔 10%`、`末位首领必掉一件装备`。
+     */
+    public List<String> describe(String dungeonId) {
+        Table table = tables.get(dungeonId.toLowerCase(Locale.ROOT));
+        if (table == null) {
+            return List.of();
+        }
+        List<String> lines = new ArrayList<>();
+        if (!table.materials().isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+            table.materials().forEach((id, range) -> {
+                if (!sb.isEmpty()) {
+                    sb.append("、");
+                }
+                sb.append(materialName(id));
+                if (range[1] > 0) {
+                    sb.append(" ×").append(range[0]);
+                    if (range[1] != range[0]) {
+                        sb.append('-').append(range[1]);
+                    }
+                }
+            });
+            lines.add(sb.toString());
+        }
+        if (!table.items().isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+            int shown = 0;
+            for (Entry entry : table.items()) {
+                if (shown++ >= 4) {
+                    sb.append(" 等");
+                    break;
+                }
+                if (!sb.isEmpty()) {
+                    sb.append("、");
+                }
+                sb.append(itemName(entry.id()))
+                        .append(' ').append(Math.round(entry.chance() * 100)).append('%');
+            }
+            lines.add(sb.toString());
+        }
+        if (table.guaranteeFinal()) {
+            lines.add("末位首领必掉一件装备");
+        }
+        return lines;
+    }
+
+    /** 材料显示名：新物品库优先，其次旧制造底材。 */
+    public String materialName(String id) {
+        if (plugin.items() != null) {
+            var def = plugin.items().definition(id);
+            if (def.isPresent()) {
+                return def.get().display();
+            }
+        }
+        var material = plugin.crafting() == null ? null : plugin.crafting().material(id);
+        return material == null ? id : material.name();
+    }
+
+    /** 装备显示名（查物品库）。 */
+    public String itemName(String id) {
+        if (plugin.items() != null) {
+            var def = plugin.items().definition(id);
+            if (def.isPresent()) {
+                return def.get().display();
+            }
+        }
+        return id;
+    }
+
     /** 材料可能来自旧制造底材或新物品库，两边都查。 */
     private void drop(World world, Location at, String id, int amount) {
         var item = plugin.items() == null ? null : plugin.items().create(id, amount);
