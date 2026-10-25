@@ -16,17 +16,24 @@ import java.util.Locale;
  * <pre>
  *  4   标题说明
  *  10-13  Shift+1 ~ Shift+4 四个按键槽（当前绑定）
- *  19-25  当前职业技能列表（点击 → 二级按键选择）
- *  31  返回角色面板   40  关闭
+ *  19-25 / 28-34  当前职业技能库（按解锁等级排序，最多 14 个；点击 → 二级按键选择）
+ *  48  返回角色面板   50  关闭
  * </pre>
- * 顶部键槽显示对应技能图标、名称与剩余冷却；下方技能若已绑定显示按键标记。
+ * 顶部键槽显示对应技能图标、名称与剩余冷却；下方技能若已绑定显示按键标记，
+ * 未达 unlock-level 的灰显不可点（v4.1 技能池扩充后单职业最多 10 个可绑定技能，
+ * 故扩为 6 行两排）。
  */
 public final class SkillBindMenu extends Menu {
 
     private static final int[] KEY_SLOTS = {10, 11, 12, 13};
+    /** 技能库槽位：第 3 行 19-25 + 第 4 行 28-34，共 14 格。 */
+    private static final int[] SKILL_SLOTS = {
+            19, 20, 21, 22, 23, 24, 25,
+            28, 29, 30, 31, 32, 33, 34
+    };
 
     public SkillBindMenu(SakuraMMOPlugin plugin, Player player) {
-        super(plugin, player, 5, Msg.raw("menu.skills-title"));
+        super(plugin, player, 6, Msg.raw("menu.skills-title"));
     }
 
     @Override
@@ -52,25 +59,32 @@ public final class SkillBindMenu extends Menu {
                     p -> new KeySelectMenu(plugin, p, null).open()); // 点空槽去下面选
         }
 
-        // 下方：职业技能列表（点击进二级按键选择）
-        int slot = 19;
+        // 下方：职业技能库（按解锁等级排序；未解锁灰显不可点）
+        List<SkillDefinition> bindable = new ArrayList<>();
         for (String skillId : definition.skills()) {
             SkillDefinition skill = plugin.config().skill(skillId);
-            if (skill == null || !skill.trigger().bindable()) {
-                continue;
-            }
-            String boundKey = boundKeyOf(profile, skillId);
-            set(slot, skillIcon(skill, boundKey),
-                    p -> new KeySelectMenu(plugin, p, skillId).open());
-            slot++;
-            if (slot > 25) {
-                break;
+            if (skill != null && skill.trigger().bindable()) {
+                bindable.add(skill);
             }
         }
+        bindable.sort(java.util.Comparator.comparingInt(SkillDefinition::unlockLevel));
+        int index = 0;
+        for (SkillDefinition skill : bindable) {
+            if (index >= SKILL_SLOTS.length) {
+                plugin.getLogger().warning("技能库超出显示上限（14），已忽略剩余技能：" + skill.id());
+                break;
+            }
+            int slot = SKILL_SLOTS[index++];
+            String boundKey = boundKeyOf(profile, skill.id());
+            boolean unlocked = skill.unlockedAt(player.getLevel());
+            final SkillDefinition def = skill;
+            set(slot, skillIcon(skill, boundKey, unlocked),
+                    unlocked ? p -> new KeySelectMenu(plugin, p, def.id()).open() : null);
+        }
 
-        set(31, Items.of(Material.ARROW, Msg.raw("menu.back-to-hub"), List.of()),
+        set(48, Items.of(Material.ARROW, Msg.raw("menu.back-to-hub"), List.of()),
                 p -> new MainMenu(plugin, p).open());
-        set(40, Items.of(Material.BARRIER, Msg.raw("menu.button-close"), List.of()),
+        set(50, Items.of(Material.BARRIER, Msg.raw("menu.button-close"), List.of()),
                 p -> p.closeInventory());
 
         fill(fillerMaterial());
@@ -98,10 +112,11 @@ public final class SkillBindMenu extends Menu {
         return Items.of(material, Msg.raw("menu.key-slot-name", "key", keyDisplay), lore);
     }
 
-    /** 职业技能图标（含已绑定按键标记）。 */
-    private org.bukkit.inventory.ItemStack skillIcon(SkillDefinition skill, String boundKey) {
+    /** 职业技能图标（含解锁状态与已绑定按键标记）。 */
+    private org.bukkit.inventory.ItemStack skillIcon(SkillDefinition skill, String boundKey, boolean unlocked) {
         List<String> lore = new ArrayList<>();
-        lore.add(Msg.raw("menu.skill-click-hint"));
+        lore.add(Msg.raw(unlocked ? "menu.skill-click-hint" : "menu.skill-locked-line",
+                "level", String.valueOf(skill.unlockLevel())));
         if (boundKey != null) {
             lore.add(Msg.raw("menu.skill-bound-key", "key", boundKey));
         }
@@ -110,7 +125,11 @@ public final class SkillBindMenu extends Menu {
                         ? Msg.raw("skill.bind-ready")
                         : String.valueOf(plugin.skills().cooldownRemaining(player, skill.id()) / 1000) + "s"));
         Material material = skill.icon() == null ? Material.BLAZE_POWDER : skill.icon();
-        String name = skill.displayName() + (boundKey == null ? "" : " " + boundKey);
+        if (!unlocked) {
+            material = Material.GRAY_DYE;
+        }
+        String name = (unlocked ? skill.displayName() : "&8" + skill.displayName())
+                + (boundKey == null ? "" : " " + boundKey);
         return Items.of(material, name, lore);
     }
 

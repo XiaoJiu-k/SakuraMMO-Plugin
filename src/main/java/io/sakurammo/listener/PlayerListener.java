@@ -76,6 +76,8 @@ public final class PlayerListener implements Listener {
         plugin.instances().handleRejoin(player);
         // 阶段三：天赋 modifier 登录重挂（任务书坑表：离线修改上线要生效）
         plugin.talents().scheduleApplyOnJoin(player);
+        // v4.1：被动技能登录挂载
+        plugin.passives().scheduleApplyOnJoin(player);
         // 阶段四：周常 Cycle-ID 校验（跨周期登录即重置，无遍历）
         plugin.weeklies().ensureCycle(player);
         // 阶段四：职业等级 → 原版等级显示（档案等级高于原版时一次性迁移，豁免发点）
@@ -89,6 +91,8 @@ public final class PlayerListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onLevelChange(org.bukkit.event.player.PlayerLevelChangeEvent event) {
         plugin.weeklies().handleLevelChange(event.getPlayer(), event.getOldLevel(), event.getNewLevel());
+        // v4.1：被动重挂 + 新技能解锁提示
+        plugin.passives().handleLevelUp(event.getPlayer(), event.getOldLevel(), event.getNewLevel());
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

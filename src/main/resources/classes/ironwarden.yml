@@ -28,13 +28,23 @@ resources:
     on-attack: 3
 
 skills:
-  - ironwarden_shield_bash        # 盾击     主动·常规 6s/20
-  - ironwarden_guardian_bulwark   # 守护壁垒 主动·战术 18s/30
-  - ironwarden_iron_taunt         # 铁壁嘲讽 主动·战术 12s/15
-  - ironwarden_ground_slam        # 大地践踏 主动·爆发 25s/40
-  - ironwarden_last_stand         # 背水一战 被动触发 90s/0
+  # 主动技能（按解锁等级，Shift+1~4 可绑定其中 4 个）
+  - ironwarden_shield_bash           # Lv1  盾击  CD 6s
+  - ironwarden_tear                  # Lv1  撕裂  CD 8s
+  - ironwarden_guardian_bulwark      # Lv5  守护壁垒  CD 20s
+  - ironwarden_heavy_blow            # Lv10 重击  CD 10s
+  - ironwarden_iron_taunt            # Lv15 铁壁嘲讽  CD 25s
+  - ironwarden_ground_slam           # Lv20 大地践踏  CD 25s
+  - ironwarden_revenge               # Lv20 复仇  CD 12s
+  - ironwarden_ascension             # Lv30 天神下凡  CD 120s
+  - ironwarden_last_breath           # Lv40 破釜沉舟  CD 30s
+  - ironwarden_last_stand            # Lv45 背水一战  CD 45s
+  # 被动技能（达到等级自动生效，无需绑定）
+  - ironwarden_unbreakable           # Lv1  坚不可摧  被动
+  - ironwarden_bloodlust             # Lv15 浴血奋战  被动
+  - ironwarden_thorns                # Lv30 荆棘之甲  被动
+  - ironwarden_shield_mastery        # Lv50 盾牌精通  被动
 
-# 装备限制（P0 只作文档约定，不强制拦截；强制拦截属于 P1）
 equipment:
   allowed: [ SWORD, AXE, SHIELD, HEAVY_ARMOR ]
   forbidden: [ BOW, WAND ]

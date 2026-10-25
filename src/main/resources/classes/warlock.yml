@@ -23,11 +23,21 @@ resources:
     on-kill: 1
 
 skills:
-  - warlock_corruption   # 腐蚀诅咒 主动·常规 5s/1
-  - warlock_soul_burst   # 灵魂爆裂 主动·战术 12s/2
-  - warlock_drain_life   # 吸取生命 主动·战术 15s/1
-  - warlock_summon_imp   # 召唤小鬼 主动·战术 30s/3
-  - warlock_soul_harvest # 灵魂收割 被动触发 10s/0
+  # 主动技能（按解锁等级，Shift+1~4 可绑定其中 4 个）
+  - warlock_corruption               # Lv1  腐蚀诅咒  CD 5s
+  - warlock_drain_life               # Lv1  吸取生命  CD 8s
+  - warlock_soul_burst               # Lv5  灵魂爆裂  CD 18s
+  - warlock_curse_of_weakness        # Lv10 虚弱诅咒  CD 10s
+  - warlock_summon_imp               # Lv15 召唤小鬼  CD 25s
+  - warlock_haunt                    # Lv20 缠魂  CD 12s
+  - warlock_soul_harvest             # Lv25 灵魂收割  CD 30s
+  - warlock_demonic_frenzy           # Lv30 恶魔狂乱  CD 120s
+  - warlock_soul_barrier             # Lv40 灵魂结界  CD 30s
+  # 被动技能（达到等级自动生效，无需绑定）
+  - warlock_dark_pact                # Lv1  黑暗契约  被动
+  - warlock_siphon                   # Lv15 灵魂虹吸  被动
+  - warlock_void_skin                # Lv30 虚空之肤  被动
+  - warlock_warlock_master           # Lv50 术士大师  被动
 
 equipment:
   allowed: [ WAND, STAFF, CLOTH_ARMOR ]

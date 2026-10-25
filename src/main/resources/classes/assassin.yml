@@ -28,11 +28,21 @@ resources:
     reserved: true      # P1：攒点 / 终结技消耗
 
 skills:
-  - assassin_backstab     # 背刺     主动·常规 5s/20
-  - assassin_blade_dance  # 刀刃旋舞 主动·战术 12s/35
-  - assassin_shadow_step  # 暗影步   主动·战术 15s/25
-  - assassin_eviscerate   # 剔骨     主动·爆发 20s/45
-  - assassin_smoke_dodge  # 烟雾闪避 被动触发 90s/0
+  # 主动技能（按解锁等级，Shift+1~4 可绑定其中 4 个）
+  - assassin_backstab                # Lv1  背刺  CD 5s
+  - assassin_poison_blade            # Lv1  毒刃  CD 8s
+  - assassin_shadow_step             # Lv5  暗影步  CD 18s
+  - assassin_eviscerate              # Lv10 剔骨  CD 10s
+  - assassin_blade_dance             # Lv15 刀刃旋舞  CD 25s
+  - assassin_vanish                  # Lv20 消失  CD 12s
+  - assassin_death_mark              # Lv30 死亡印记  CD 120s
+  - assassin_smoke_dodge             # Lv30 烟雾闪避  CD 60s
+  - assassin_shade_form              # Lv40 暗影形态  CD 30s
+  # 被动技能（达到等级自动生效，无需绑定）
+  - assassin_agility                 # Lv1  敏捷身法  被动
+  - assassin_lethality               # Lv15 致命性  被动
+  - assassin_evasion                 # Lv30 闪避本能  被动
+  - assassin_assassinate             # Lv50 刺杀艺术  被动
 
 equipment:
   allowed: [ DAGGER, SWORD, LEATHER_ARMOR ]

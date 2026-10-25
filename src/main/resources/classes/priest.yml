@@ -22,11 +22,21 @@ resources:
     regen-per-second: 5
 
 skills:
-  - priest_flash_heal   # 快速治疗 主动·常规 1.5s/25
-  - priest_holy_surge   # 圣光涌流 主动·战术 12s/55
-  - priest_renew        # 恢复     主动·战术 10s/30
-  - priest_dispel       # 驱散     主动·战术 15s/25
-  - priest_mercy        # 慈悲     被动触发 90s/0
+  # 主动技能（按解锁等级，Shift+1~4 可绑定其中 4 个）
+  - priest_flash_heal                # Lv1  快速治疗  CD 3s
+  - priest_smite                     # Lv1  惩戒  CD 6s
+  - priest_renew                     # Lv5  恢复  CD 12s
+  - priest_holy_surge                # Lv10 圣光涌流  CD 15s
+  - priest_dispel                    # Lv15 驱散  CD 20s
+  - priest_punish                    # Lv20 惩戒之怒  CD 12s
+  - priest_mercy                     # Lv20 慈悲  CD 60s
+  - priest_divine_hymn               # Lv30 神圣赞美诗  CD 120s
+  - priest_guardian_spirit           # Lv40 守护之灵  CD 30s
+  # 被动技能（达到等级自动生效，无需绑定）
+  - priest_faith                     # Lv1  坚定信仰  被动
+  - priest_mending                   # Lv15 修补之心  被动
+  - priest_sacred_ward               # Lv30 圣佑  被动
+  - priest_enlightenment             # Lv50 启迪  被动
 
 equipment:
   allowed: [ WAND, STAFF, CLOTH_ARMOR ]

@@ -27,11 +27,21 @@ resources:
     reserved: true      # P1：交替元素攒共鸣 → 强化下一发
 
 skills:
-  - elementalist_fireball        # 炎弹     主动·常规 2.2s/20
-  - elementalist_arcane_burst    # 奥术爆发 主动·战术 12s/50
-  - elementalist_frost_nova      # 冰霜新星 主动·战术 18s/35
-  - elementalist_lightning_chain # 闪电链   主动·爆发 25s/60
-  - elementalist_resonance       # 元素共鸣 被动触发 20s/0
+  # 主动技能（按解锁等级，Shift+1~4 可绑定其中 4 个）
+  - elementalist_fireball            # Lv1  炎弹  CD 5s
+  - elementalist_frostbolt           # Lv1  寒冰箭  CD 6s
+  - elementalist_frost_nova          # Lv5  冰霜新星  CD 18s
+  - elementalist_arcane_burst        # Lv10 奥术爆发  CD 10s
+  - elementalist_lightning_chain     # Lv15 闪电链  CD 25s
+  - elementalist_meteor              # Lv20 陨石术  CD 12s
+  - elementalist_resonance           # Lv20 元素共鸣  CD 45s
+  - elementalist_cataclysm           # Lv30 灾变  CD 120s
+  - elementalist_mana_shield         # Lv40 法力护盾  CD 30s
+  # 被动技能（达到等级自动生效，无需绑定）
+  - elementalist_arcane_mind         # Lv1  奥术心智  被动
+  - elementalist_fire_attunement     # Lv15 火焰亲和  被动
+  - elementalist_frost_armor         # Lv30 寒冰护甲  被动
+  - elementalist_archmage            # Lv50 大法师  被动
 
 equipment:
   allowed: [ WAND, STAFF, CLOTH_ARMOR ]

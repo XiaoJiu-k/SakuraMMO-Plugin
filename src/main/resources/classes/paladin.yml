@@ -23,11 +23,21 @@ resources:
     on-attack: 1
 
 skills:
-  - paladin_judgement       # 审判     主动·常规 8s/1
-  - paladin_consecration    # 奉献领域 主动·战术 15s/2
-  - paladin_holy_shield     # 圣光壁垒 主动·战术 20s/1
-  - paladin_divine_verdict  # 神圣裁决 主动·爆发 40s/3
-  - paladin_guardian_light  # 守护之光 被动触发 90s/0
+  # 主动技能（按解锁等级，Shift+1~4 可绑定其中 4 个）
+  - paladin_judgement                # Lv1  审判  CD 6s
+  - paladin_smite                    # Lv1  圣光惩击  CD 8s
+  - paladin_consecration             # Lv5  奉献领域  CD 20s
+  - paladin_hammer_wrath             # Lv10 怒锤  CD 10s
+  - paladin_holy_shield              # Lv15 圣盾术  CD 25s
+  - paladin_guardian_light           # Lv15 守护之光  CD 60s
+  - paladin_divine_verdict           # Lv20 神圣裁决  CD 12s
+  - paladin_avenging_wrath           # Lv30 愤怒之翼  CD 120s
+  - paladin_sacred_pledge            # Lv40 圣契誓约  CD 30s
+  # 被动技能（达到等级自动生效，无需绑定）
+  - paladin_blessed_armor            # Lv1  祝福护甲  被动
+  - paladin_inner_light              # Lv15 内在之光  被动
+  - paladin_divine_grace             # Lv30 神圣恩泽  被动
+  - paladin_crusader                 # Lv50 十字军之心  被动
 
 equipment:
   allowed: [ SWORD, SHIELD, HEAVY_ARMOR ]

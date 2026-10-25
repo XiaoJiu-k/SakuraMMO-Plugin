@@ -22,11 +22,21 @@ resources:
     regen-per-second: 5
 
 skills:
-  - ranger_aimed_shot    # 瞄准射击 主动·常规 8s/25
-  - ranger_frost_trap    # 冰霜陷阱 主动·战术 18s/20
-  - ranger_multishot     # 多重射击 主动·战术 12s/30
-  - ranger_hunters_mark  # 猎人印记 主动·战术 10s/15
-  - ranger_steady_aim    # 稳定瞄准 被动触发 10s/0
+  # 主动技能（按解锁等级，Shift+1~4 可绑定其中 4 个）
+  - ranger_aimed_shot                # Lv1  瞄准射击  CD 6s
+  - ranger_piercing_arrow            # Lv1  穿透箭  CD 8s
+  - ranger_frost_trap                # Lv5  冰霜陷阱  CD 18s
+  - ranger_multishot                 # Lv10 多重射击  CD 10s
+  - ranger_hunters_mark              # Lv15 猎人印记  CD 25s
+  - ranger_rapid_fire                # Lv20 急速射击  CD 12s
+  - ranger_steady_aim                # Lv25 稳定瞄准  CD 45s
+  - ranger_arrow_storm               # Lv30 箭雨风暴  CD 120s
+  - ranger_camouflage                # Lv40 伪装  CD 30s
+  # 被动技能（达到等级自动生效，无需绑定）
+  - ranger_deadeye                   # Lv1  鹰眼  被动
+  - ranger_swiftness                 # Lv15 疾行  被动
+  - ranger_survivalist               # Lv30 生存专家  被动
+  - ranger_marksman                  # Lv50 神射手  被动
 
 equipment:
   allowed: [ BOW, CROSSBOW, DAGGER, LEATHER_ARMOR ]
