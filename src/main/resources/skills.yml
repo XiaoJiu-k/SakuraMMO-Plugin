@@ -1,14 +1,21 @@
 # ============================================================
-# 技能池（v4.1）：7 职业 × 12 = 84（4 基础 + 3 战术 + 1 终极 + 4 被动）
+# 技能入口定义（35 个 = 7 职业 × (4 主动 + 1 被动)）
 #
-# unlock-level：玩家原版等级达到后可施放/绑定（实时判定）
-# 被动（trigger: PASSIVE）：
-#   passive-stat/passive-value → AuraSkills modifier passive_<id>（解锁自动挂载）
-#   passive-special → 事件型被动（thorns=受伤反弹 / rage-surge=低血怒气翻倍）
-# MythicMobs 效果配置见 plugins/MythicMobs/skills/ 各职业文件
+# 本文件只描述「入口」：谁可以放、花多少资源、多长冷却、怎么触发。
+# 技能的实际效果一律由 MythicMobs 的 <mythic-skill> 执行，插件不重复实现。
+#
+# 字段
+#   display-name  显示名
+#   class         所属职业 id
+#   mythic-skill  MythicMobs 技能 id（必须存在，否则启动时 WARN）
+#   resource      消耗的资源 id（classes/<id>.yml 的 resources 段）
+#   cost          消耗量
+#   cooldown      冷却（秒，支持小数）
+#   trigger       RIGHT_CLICK / RIGHT_CLICK_AIR / RIGHT_CLICK_BLOCK / LEFT_CLICK / PASSIVE
+#   unlock.permission  解锁权限（留空表示只要职业匹配就解锁）
 # ============================================================
 
-# ---------------- 铁卫 ironwarden（rage） ----------------
+# ---------------- 铁卫 ironwarden（怒气 0–100） ----------------
 ironwarden_shield_bash:
   display-name: 盾击
   class: ironwarden
@@ -18,18 +25,8 @@ ironwarden_shield_bash:
   cost: 20
   cooldown: 6
   trigger: RIGHT_CLICK
-  unlock-level: 1
-
-ironwarden_tear:
-  display-name: 撕裂
-  class: ironwarden
-  mythic-skill: ironwarden_tear
-  icon: REDSTONE
-  resource: rage
-  cost: 15
-  cooldown: 8
-  trigger: RIGHT_CLICK
-  unlock-level: 1
+  unlock:
+    permission: sakurammo.skill.ironwarden_shield_bash
 
 ironwarden_guardian_bulwark:
   display-name: 守护壁垒
@@ -38,20 +35,10 @@ ironwarden_guardian_bulwark:
   icon: IRON_CHESTPLATE
   resource: rage
   cost: 30
-  cooldown: 20
+  cooldown: 18
   trigger: RIGHT_CLICK
-  unlock-level: 5
-
-ironwarden_heavy_blow:
-  display-name: 重击
-  class: ironwarden
-  mythic-skill: ironwarden_heavy_blow
-  icon: ANVIL
-  resource: rage
-  cost: 30
-  cooldown: 10
-  trigger: RIGHT_CLICK
-  unlock-level: 10
+  unlock:
+    permission: sakurammo.skill.ironwarden_guardian_bulwark
 
 ironwarden_iron_taunt:
   display-name: 铁壁嘲讽
@@ -60,9 +47,10 @@ ironwarden_iron_taunt:
   icon: BELL
   resource: rage
   cost: 15
-  cooldown: 25
+  cooldown: 12
   trigger: RIGHT_CLICK
-  unlock-level: 15
+  unlock:
+    permission: sakurammo.skill.ironwarden_iron_taunt
 
 ironwarden_ground_slam:
   display-name: 大地践踏
@@ -73,263 +61,94 @@ ironwarden_ground_slam:
   cost: 40
   cooldown: 25
   trigger: RIGHT_CLICK
-  unlock-level: 20
+  unlock:
+    permission: sakurammo.skill.ironwarden_ground_slam
 
 ironwarden_last_stand:
   display-name: 背水一战
   class: ironwarden
   mythic-skill: ironwarden_last_stand
-  icon: IRON_AXE
-  resource: rage
-  cost: 0
-  cooldown: 45
-  trigger: RIGHT_CLICK
-  unlock-level: 45
-
-ironwarden_revenge:
-  display-name: 复仇
-  class: ironwarden
-  mythic-skill: ironwarden_revenge
-  icon: IRON_SWORD
-  resource: rage
-  cost: 25
-  cooldown: 12
-  trigger: RIGHT_CLICK
-  unlock-level: 20
-
-ironwarden_ascension:
-  display-name: 天神下凡
-  class: ironwarden
-  mythic-skill: ironwarden_ascension
   icon: TOTEM_OF_UNDYING
   resource: rage
   cost: 0
-  cooldown: 120
-  trigger: RIGHT_CLICK
-  unlock-level: 30
-
-ironwarden_last_breath:
-  display-name: 破釜沉舟
-  class: ironwarden
-  mythic-skill: ironwarden_last_breath
-  icon: IRON_AXE
-  resource: rage
-  cost: 0
-  cooldown: 30
-  trigger: RIGHT_CLICK
-  unlock-level: 40
-
-ironwarden_unbreakable:
-  display-name: 坚不可摧
-  class: ironwarden
-  icon: SHIELD
-  cooldown: 0
+  cooldown: 90
   trigger: PASSIVE
-  unlock-level: 1
-  passive-stat: toughness
-  passive-value: 2
+  unlock:
+    permission: sakurammo.skill.ironwarden_last_stand
 
-ironwarden_bloodlust:
-  display-name: 浴血奋战
-  class: ironwarden
-  icon: BLAZE_POWDER
-  cooldown: 0
-  trigger: PASSIVE
-  unlock-level: 15
-  passive-special: rage-surge
-
-ironwarden_thorns:
-  display-name: 荆棘之甲
-  class: ironwarden
-  icon: CACTUS
-  cooldown: 0
-  trigger: PASSIVE
-  unlock-level: 30
-  passive-special: thorns
-
-ironwarden_shield_mastery:
-  display-name: 盾牌精通
-  class: ironwarden
-  icon: SHIELD
-  cooldown: 0
-  trigger: PASSIVE
-  unlock-level: 50
-  passive-stat: health
-  passive-value: 6
-
-# ---------------- 圣骑士 paladin（holy） ----------------
+# ---------------- 圣骑士 paladin（圣能 0–5） ----------------
 paladin_judgement:
   display-name: 审判
   class: paladin
   mythic-skill: paladin_judgement
-  icon: BLAZE_ROD
-  resource: holy
-  cost: 20
-  cooldown: 6
-  trigger: RIGHT_CLICK
-  unlock-level: 1
-
-paladin_smite:
-  display-name: 圣光惩击
-  class: paladin
-  mythic-skill: paladin_smite
-  icon: GLOWSTONE_DUST
-  resource: holy
-  cost: 18
+  icon: GOLDEN_SWORD
+  resource: holy_power
+  cost: 1
   cooldown: 8
   trigger: RIGHT_CLICK
-  unlock-level: 1
+  unlock:
+    permission: sakurammo.skill.paladin_judgement
 
 paladin_consecration:
   display-name: 奉献领域
   class: paladin
   mythic-skill: paladin_consecration
-  icon: GOLD_BLOCK
-  resource: holy
-  cost: 30
-  cooldown: 20
+  icon: GLOWSTONE
+  resource: holy_power
+  cost: 2
+  cooldown: 15
   trigger: RIGHT_CLICK
-  unlock-level: 5
-
-paladin_hammer_wrath:
-  display-name: 怒锤
-  class: paladin
-  mythic-skill: paladin_hammer_wrath
-  icon: IRON_AXE
-  resource: holy
-  cost: 30
-  cooldown: 10
-  trigger: RIGHT_CLICK
-  unlock-level: 10
+  unlock:
+    permission: sakurammo.skill.paladin_consecration
 
 paladin_holy_shield:
-  display-name: 圣盾术
+  display-name: 圣光壁垒
   class: paladin
   mythic-skill: paladin_holy_shield
-  icon: SHIELD
-  resource: holy
-  cost: 25
-  cooldown: 25
+  icon: GOLDEN_CHESTPLATE
+  resource: holy_power
+  cost: 1
+  cooldown: 20
   trigger: RIGHT_CLICK
-  unlock-level: 15
+  unlock:
+    permission: sakurammo.skill.paladin_holy_shield
 
 paladin_divine_verdict:
   display-name: 神圣裁决
   class: paladin
   mythic-skill: paladin_divine_verdict
-  icon: NETHER_STAR
-  resource: holy
-  cost: 45
-  cooldown: 12
+  icon: BEACON
+  resource: holy_power
+  cost: 3
+  cooldown: 40
   trigger: RIGHT_CLICK
-  unlock-level: 20
-
-paladin_avenging_wrath:
-  display-name: 愤怒之翼
-  class: paladin
-  mythic-skill: paladin_avenging_wrath
-  icon: TOTEM_OF_UNDYING
-  resource: holy
-  cost: 0
-  cooldown: 120
-  trigger: RIGHT_CLICK
-  unlock-level: 30
-
-paladin_sacred_pledge:
-  display-name: 圣契誓约
-  class: paladin
-  mythic-skill: paladin_sacred_pledge
-  icon: BOOK
-  resource: holy
-  cost: 0
-  cooldown: 30
-  trigger: RIGHT_CLICK
-  unlock-level: 40
+  unlock:
+    permission: sakurammo.skill.paladin_divine_verdict
 
 paladin_guardian_light:
   display-name: 守护之光
   class: paladin
   mythic-skill: paladin_guardian_light
-  icon: GLOWSTONE_DUST
-  resource: holy
+  icon: LANTERN
+  resource: holy_power
   cost: 0
-  cooldown: 60
-  trigger: RIGHT_CLICK
-  unlock-level: 15
-
-paladin_blessed_armor:
-  display-name: 祝福护甲
-  class: paladin
-  icon: SHIELD
-  cooldown: 0
+  cooldown: 90
   trigger: PASSIVE
-  unlock-level: 1
-  passive-stat: toughness
-  passive-value: 2
+  unlock:
+    permission: sakurammo.skill.paladin_guardian_light
 
-paladin_inner_light:
-  display-name: 内在之光
-  class: paladin
-  icon: GLOWSTONE_DUST
-  cooldown: 0
-  trigger: PASSIVE
-  unlock-level: 15
-  passive-stat: health
-  passive-value: 4
-
-paladin_divine_grace:
-  display-name: 神圣恩泽
-  class: paladin
-  icon: GLOWSTONE_DUST
-  cooldown: 0
-  trigger: PASSIVE
-  unlock-level: 30
-  passive-stat: regeneration
-  passive-value: 2
-
-paladin_crusader:
-  display-name: 十字军之心
-  class: paladin
-  icon: IRON_AXE
-  cooldown: 0
-  trigger: PASSIVE
-  unlock-level: 50
-  passive-stat: strength
-  passive-value: 3
-
-# ---------------- 牧师 priest（mana） ----------------
+# ---------------- 牧师 priest（法力 0–1000） ----------------
 priest_flash_heal:
   display-name: 快速治疗
   class: priest
   mythic-skill: priest_flash_heal
-  icon: GLOWSTONE_DUST
+  icon: GLISTERING_MELON_SLICE
   resource: mana
   cost: 25
-  cooldown: 3
+  cooldown: 1.5
   trigger: RIGHT_CLICK
-  unlock-level: 1
-
-priest_smite:
-  display-name: 惩戒
-  class: priest
-  mythic-skill: priest_smite
-  icon: BLAZE_ROD
-  resource: mana
-  cost: 20
-  cooldown: 6
-  trigger: RIGHT_CLICK
-  unlock-level: 1
-
-priest_renew:
-  display-name: 恢复
-  class: priest
-  mythic-skill: priest_renew
-  icon: GLOWSTONE_DUST
-  resource: mana
-  cost: 30
-  cooldown: 12
-  trigger: RIGHT_CLICK
-  unlock-level: 5
+  unlock:
+    permission: sakurammo.skill.priest_flash_heal
 
 priest_holy_surge:
   display-name: 圣光涌流
@@ -338,106 +157,48 @@ priest_holy_surge:
   icon: GLOWSTONE_DUST
   resource: mana
   cost: 55
-  cooldown: 15
+  cooldown: 12
   trigger: RIGHT_CLICK
-  unlock-level: 10
+  unlock:
+    permission: sakurammo.skill.priest_holy_surge
+
+priest_renew:
+  display-name: 恢复
+  class: priest
+  mythic-skill: priest_renew
+  icon: HONEY_BOTTLE
+  resource: mana
+  cost: 30
+  cooldown: 10
+  trigger: RIGHT_CLICK
+  unlock:
+    permission: sakurammo.skill.priest_renew
 
 priest_dispel:
   display-name: 驱散
   class: priest
   mythic-skill: priest_dispel
-  icon: PAPER
+  icon: MILK_BUCKET
   resource: mana
   cost: 25
-  cooldown: 20
+  cooldown: 15
   trigger: RIGHT_CLICK
-  unlock-level: 15
-
-priest_punish:
-  display-name: 惩戒之怒
-  class: priest
-  mythic-skill: priest_punish
-  icon: BLAZE_POWDER
-  resource: mana
-  cost: 35
-  cooldown: 12
-  trigger: RIGHT_CLICK
-  unlock-level: 20
-
-priest_divine_hymn:
-  display-name: 神圣赞美诗
-  class: priest
-  mythic-skill: priest_divine_hymn
-  icon: NOTE_BLOCK
-  resource: mana
-  cost: 80
-  cooldown: 120
-  trigger: RIGHT_CLICK
-  unlock-level: 30
-
-priest_guardian_spirit:
-  display-name: 守护之灵
-  class: priest
-  mythic-skill: priest_guardian_spirit
-  icon: TOTEM_OF_UNDYING
-  resource: mana
-  cost: 40
-  cooldown: 30
-  trigger: RIGHT_CLICK
-  unlock-level: 40
+  unlock:
+    permission: sakurammo.skill.priest_dispel
 
 priest_mercy:
   display-name: 慈悲
   class: priest
   mythic-skill: priest_mercy
-  icon: GLOWSTONE_DUST
+  icon: GOLDEN_APPLE
   resource: mana
   cost: 0
-  cooldown: 60
-  trigger: RIGHT_CLICK
-  unlock-level: 20
-
-priest_faith:
-  display-name: 坚定信仰
-  class: priest
-  icon: PAPER
-  cooldown: 0
+  cooldown: 90
   trigger: PASSIVE
-  unlock-level: 1
-  passive-stat: wisdom
-  passive-value: 3
+  unlock:
+    permission: sakurammo.skill.priest_mercy
 
-priest_mending:
-  display-name: 修补之心
-  class: priest
-  icon: GLOWSTONE_DUST
-  cooldown: 0
-  trigger: PASSIVE
-  unlock-level: 15
-  passive-stat: regeneration
-  passive-value: 1
-
-priest_sacred_ward:
-  display-name: 圣佑
-  class: priest
-  icon: SHIELD
-  cooldown: 0
-  trigger: PASSIVE
-  unlock-level: 30
-  passive-stat: toughness
-  passive-value: 2
-
-priest_enlightenment:
-  display-name: 启迪
-  class: priest
-  icon: BOOK
-  cooldown: 0
-  trigger: PASSIVE
-  unlock-level: 50
-  passive-stat: wisdom
-  passive-value: 3
-
-# ---------------- 刺客 assassin（energy） ----------------
+# ---------------- 刺客 assassin（能量 0–100） ----------------
 assassin_backstab:
   display-name: 背刺
   class: assassin
@@ -447,18 +208,20 @@ assassin_backstab:
   cost: 20
   cooldown: 5
   trigger: RIGHT_CLICK
-  unlock-level: 1
+  unlock:
+    permission: sakurammo.skill.assassin_backstab
 
-assassin_poison_blade:
-  display-name: 毒刃
+assassin_blade_dance:
+  display-name: 刀刃旋舞
   class: assassin
-  mythic-skill: assassin_poison_blade
-  icon: SPIDER_EYE
+  mythic-skill: assassin_blade_dance
+  icon: DIAMOND_SWORD
   resource: energy
-  cost: 15
-  cooldown: 8
+  cost: 35
+  cooldown: 12
   trigger: RIGHT_CLICK
-  unlock-level: 1
+  unlock:
+    permission: sakurammo.skill.assassin_blade_dance
 
 assassin_shadow_step:
   display-name: 暗影步
@@ -467,289 +230,108 @@ assassin_shadow_step:
   icon: ENDER_PEARL
   resource: energy
   cost: 25
-  cooldown: 18
+  cooldown: 15
   trigger: RIGHT_CLICK
-  unlock-level: 5
+  unlock:
+    permission: sakurammo.skill.assassin_shadow_step
 
 assassin_eviscerate:
   display-name: 剔骨
   class: assassin
   mythic-skill: assassin_eviscerate
-  icon: IRON_SWORD
+  icon: NETHERITE_SWORD
   resource: energy
   cost: 45
-  cooldown: 10
+  cooldown: 20
   trigger: RIGHT_CLICK
-  unlock-level: 10
-
-assassin_blade_dance:
-  display-name: 刀刃旋舞
-  class: assassin
-  mythic-skill: assassin_blade_dance
-  icon: IRON_SWORD
-  resource: energy
-  cost: 35
-  cooldown: 25
-  trigger: RIGHT_CLICK
-  unlock-level: 15
-
-assassin_vanish:
-  display-name: 消失
-  class: assassin
-  mythic-skill: assassin_vanish
-  icon: INK_SAC
-  resource: energy
-  cost: 30
-  cooldown: 12
-  trigger: RIGHT_CLICK
-  unlock-level: 20
-
-assassin_death_mark:
-  display-name: 死亡印记
-  class: assassin
-  mythic-skill: assassin_death_mark
-  icon: BONE
-  resource: energy
-  cost: 60
-  cooldown: 120
-  trigger: RIGHT_CLICK
-  unlock-level: 30
-
-assassin_shade_form:
-  display-name: 暗影形态
-  class: assassin
-  mythic-skill: assassin_shade_form
-  icon: INK_SAC
-  resource: energy
-  cost: 0
-  cooldown: 30
-  trigger: RIGHT_CLICK
-  unlock-level: 40
-
-assassin_agility:
-  display-name: 敏捷身法
-  class: assassin
-  icon: FEATHER
-  cooldown: 0
-  trigger: PASSIVE
-  unlock-level: 1
-  passive-stat: speed
-  passive-value: 2
-
-assassin_lethality:
-  display-name: 致命性
-  class: assassin
-  icon: IRON_SWORD
-  cooldown: 0
-  trigger: PASSIVE
-  unlock-level: 15
-  passive-stat: crit_chance
-  passive-value: 2
+  unlock:
+    permission: sakurammo.skill.assassin_eviscerate
 
 assassin_smoke_dodge:
   display-name: 烟雾闪避
   class: assassin
   mythic-skill: assassin_smoke_dodge
-  icon: INK_SAC
+  icon: PHANTOM_MEMBRANE
   resource: energy
   cost: 0
-  cooldown: 60
-  trigger: RIGHT_CLICK
-  unlock-level: 30
-
-assassin_evasion:
-  display-name: 闪避本能
-  class: assassin
-  icon: SLIME_BALL
-  cooldown: 0
+  cooldown: 90
   trigger: PASSIVE
-  unlock-level: 30
-  passive-stat: luck
-  passive-value: 2
+  unlock:
+    permission: sakurammo.skill.assassin_smoke_dodge
 
-assassin_assassinate:
-  display-name: 刺杀艺术
-  class: assassin
-  icon: IRON_SWORD
-  cooldown: 0
-  trigger: PASSIVE
-  unlock-level: 50
-  passive-stat: crit_damage
-  passive-value: 10
-
-# ---------------- 游侠 ranger（focus） ----------------
+# ---------------- 游侠 ranger（集中值 0–100） ----------------
 ranger_aimed_shot:
   display-name: 瞄准射击
   class: ranger
   mythic-skill: ranger_aimed_shot
-  icon: BOW
-  resource: focus
-  cost: 25
-  cooldown: 6
-  trigger: RIGHT_CLICK
-  unlock-level: 1
-
-ranger_piercing_arrow:
-  display-name: 穿透箭
-  class: ranger
-  mythic-skill: ranger_piercing_arrow
   icon: ARROW
   resource: focus
-  cost: 15
+  cost: 25
   cooldown: 8
   trigger: RIGHT_CLICK
-  unlock-level: 1
+  unlock:
+    permission: sakurammo.skill.ranger_aimed_shot
 
 ranger_frost_trap:
   display-name: 冰霜陷阱
   class: ranger
   mythic-skill: ranger_frost_trap
-  icon: ICE
+  icon: BLUE_ICE
   resource: focus
   cost: 20
   cooldown: 18
   trigger: RIGHT_CLICK
-  unlock-level: 5
+  unlock:
+    permission: sakurammo.skill.ranger_frost_trap
 
 ranger_multishot:
   display-name: 多重射击
   class: ranger
   mythic-skill: ranger_multishot
-  icon: ARROW
+  icon: SPECTRAL_ARROW
   resource: focus
   cost: 30
-  cooldown: 10
+  cooldown: 12
   trigger: RIGHT_CLICK
-  unlock-level: 10
+  unlock:
+    permission: sakurammo.skill.ranger_multishot
 
 ranger_hunters_mark:
   display-name: 猎人印记
   class: ranger
   mythic-skill: ranger_hunters_mark
-  icon: BONE
+  icon: COMPASS
   resource: focus
   cost: 15
-  cooldown: 25
+  cooldown: 10
   trigger: RIGHT_CLICK
-  unlock-level: 15
-
-ranger_rapid_fire:
-  display-name: 急速射击
-  class: ranger
-  mythic-skill: ranger_rapid_fire
-  icon: BOW
-  resource: focus
-  cost: 35
-  cooldown: 12
-  trigger: RIGHT_CLICK
-  unlock-level: 20
-
-ranger_arrow_storm:
-  display-name: 箭雨风暴
-  class: ranger
-  mythic-skill: ranger_arrow_storm
-  icon: ARROW
-  resource: focus
-  cost: 60
-  cooldown: 120
-  trigger: RIGHT_CLICK
-  unlock-level: 30
-
-ranger_camouflage:
-  display-name: 伪装
-  class: ranger
-  mythic-skill: ranger_camouflage
-  icon: LEATHER
-  resource: focus
-  cost: 0
-  cooldown: 30
-  trigger: RIGHT_CLICK
-  unlock-level: 40
-
-ranger_deadeye:
-  display-name: 鹰眼
-  class: ranger
-  icon: SPYGLASS
-  cooldown: 0
-  trigger: PASSIVE
-  unlock-level: 1
-  passive-stat: crit_chance
-  passive-value: 1
+  unlock:
+    permission: sakurammo.skill.ranger_hunters_mark
 
 ranger_steady_aim:
   display-name: 稳定瞄准
   class: ranger
   mythic-skill: ranger_steady_aim
-  icon: SPYGLASS
+  icon: TARGET
   resource: focus
   cost: 0
-  cooldown: 45
-  trigger: RIGHT_CLICK
-  unlock-level: 25
-
-ranger_swiftness:
-  display-name: 疾行
-  class: ranger
-  icon: FEATHER
-  cooldown: 0
+  cooldown: 10
   trigger: PASSIVE
-  unlock-level: 15
-  passive-stat: speed
-  passive-value: 1
+  unlock:
+    permission: sakurammo.skill.ranger_steady_aim
 
-ranger_survivalist:
-  display-name: 生存专家
-  class: ranger
-  icon: COOKED_BEEF
-  cooldown: 0
-  trigger: PASSIVE
-  unlock-level: 30
-  passive-stat: health
-  passive-value: 4
-
-ranger_marksman:
-  display-name: 神射手
-  class: ranger
-  icon: BOW
-  cooldown: 0
-  trigger: PASSIVE
-  unlock-level: 50
-  passive-stat: crit_damage
-  passive-value: 8
-
-# ---------------- 元素法师 elementalist（mana） ----------------
+# ---------------- 元素法师 elementalist（法力 0–1000） ----------------
 elementalist_fireball:
   display-name: 炎弹
   class: elementalist
   mythic-skill: elementalist_fireball
-  icon: BLAZE_POWDER
+  icon: FIRE_CHARGE
   resource: mana
   cost: 20
-  cooldown: 5
+  cooldown: 2.2
   trigger: RIGHT_CLICK
-  unlock-level: 1
-
-elementalist_frostbolt:
-  display-name: 寒冰箭
-  class: elementalist
-  mythic-skill: elementalist_frostbolt
-  icon: ICE
-  resource: mana
-  cost: 18
-  cooldown: 6
-  trigger: RIGHT_CLICK
-  unlock-level: 1
-
-elementalist_frost_nova:
-  display-name: 冰霜新星
-  class: elementalist
-  mythic-skill: elementalist_frost_nova
-  icon: ICE
-  resource: mana
-  cost: 35
-  cooldown: 18
-  trigger: RIGHT_CLICK
-  unlock-level: 5
+  unlock:
+    permission: sakurammo.skill.elementalist_fireball
 
 elementalist_arcane_burst:
   display-name: 奥术爆发
@@ -758,9 +340,22 @@ elementalist_arcane_burst:
   icon: AMETHYST_SHARD
   resource: mana
   cost: 50
-  cooldown: 10
+  cooldown: 12
   trigger: RIGHT_CLICK
-  unlock-level: 10
+  unlock:
+    permission: sakurammo.skill.elementalist_arcane_burst
+
+elementalist_frost_nova:
+  display-name: 冰霜新星
+  class: elementalist
+  mythic-skill: elementalist_frost_nova
+  icon: PACKED_ICE
+  resource: mana
+  cost: 35
+  cooldown: 18
+  trigger: RIGHT_CLICK
+  unlock:
+    permission: sakurammo.skill.elementalist_frost_nova
 
 elementalist_lightning_chain:
   display-name: 闪电链
@@ -768,231 +363,81 @@ elementalist_lightning_chain:
   mythic-skill: elementalist_lightning_chain
   icon: LIGHTNING_ROD
   resource: mana
-  cost: 45
+  cost: 60
   cooldown: 25
   trigger: RIGHT_CLICK
-  unlock-level: 15
-
-elementalist_meteor:
-  display-name: 陨石术
-  class: elementalist
-  mythic-skill: elementalist_meteor
-  icon: MAGMA_BLOCK
-  resource: mana
-  cost: 55
-  cooldown: 12
-  trigger: RIGHT_CLICK
-  unlock-level: 20
-
-elementalist_cataclysm:
-  display-name: 灾变
-  class: elementalist
-  mythic-skill: elementalist_cataclysm
-  icon: NETHER_STAR
-  resource: mana
-  cost: 90
-  cooldown: 120
-  trigger: RIGHT_CLICK
-  unlock-level: 30
-
-elementalist_mana_shield:
-  display-name: 法力护盾
-  class: elementalist
-  mythic-skill: elementalist_mana_shield
-  icon: LAPIS_LAZULI
-  resource: mana
-  cost: 40
-  cooldown: 30
-  trigger: RIGHT_CLICK
-  unlock-level: 40
+  unlock:
+    permission: sakurammo.skill.elementalist_lightning_chain
 
 elementalist_resonance:
   display-name: 元素共鸣
   class: elementalist
   mythic-skill: elementalist_resonance
-  icon: AMETHYST_SHARD
+  icon: AMETHYST_CLUSTER
   resource: mana
   cost: 0
-  cooldown: 45
-  trigger: RIGHT_CLICK
-  unlock-level: 20
-
-elementalist_arcane_mind:
-  display-name: 奥术心智
-  class: elementalist
-  icon: BOOK
-  cooldown: 0
+  cooldown: 20
   trigger: PASSIVE
-  unlock-level: 1
-  passive-stat: wisdom
-  passive-value: 3
+  unlock:
+    permission: sakurammo.skill.elementalist_resonance
 
-elementalist_fire_attunement:
-  display-name: 火焰亲和
-  class: elementalist
-  icon: BLAZE_POWDER
-  cooldown: 0
-  trigger: PASSIVE
-  unlock-level: 15
-  passive-stat: crit_chance
-  passive-value: 1
-
-elementalist_frost_armor:
-  display-name: 寒冰护甲
-  class: elementalist
-  icon: ICE
-  cooldown: 0
-  trigger: PASSIVE
-  unlock-level: 30
-  passive-stat: toughness
-  passive-value: 2
-
-elementalist_archmage:
-  display-name: 大法师
-  class: elementalist
-  icon: NETHER_STAR
-  cooldown: 0
-  trigger: PASSIVE
-  unlock-level: 50
-  passive-stat: wisdom
-  passive-value: 3
-
-# ---------------- 术士 warlock（shard） ----------------
+# ---------------- 术士 warlock（灵魂碎片 0–5） ----------------
 warlock_corruption:
   display-name: 腐蚀诅咒
   class: warlock
   mythic-skill: warlock_corruption
-  icon: SPIDER_EYE
-  resource: shard
-  cost: 20
+  icon: FERMENTED_SPIDER_EYE
+  resource: soul_shards
+  cost: 1
   cooldown: 5
   trigger: RIGHT_CLICK
-  unlock-level: 1
+  unlock:
+    permission: sakurammo.skill.warlock_corruption
+
+warlock_soul_burst:
+  display-name: 灵魂爆裂
+  class: warlock
+  mythic-skill: warlock_soul_burst
+  icon: SOUL_LANTERN
+  resource: soul_shards
+  cost: 2
+  cooldown: 12
+  trigger: RIGHT_CLICK
+  unlock:
+    permission: sakurammo.skill.warlock_soul_burst
 
 warlock_drain_life:
   display-name: 吸取生命
   class: warlock
   mythic-skill: warlock_drain_life
   icon: GHAST_TEAR
-  resource: shard
-  cost: 35
-  cooldown: 8
+  resource: soul_shards
+  cost: 1
+  cooldown: 15
   trigger: RIGHT_CLICK
-  unlock-level: 1
-
-warlock_soul_burst:
-  display-name: 灵魂爆裂
-  class: warlock
-  mythic-skill: warlock_soul_burst
-  icon: AMETHYST_SHARD
-  resource: shard
-  cost: 45
-  cooldown: 18
-  trigger: RIGHT_CLICK
-  unlock-level: 5
-
-warlock_curse_of_weakness:
-  display-name: 虚弱诅咒
-  class: warlock
-  mythic-skill: warlock_curse_of_weakness
-  icon: FERMENTED_SPIDER_EYE
-  resource: shard
-  cost: 30
-  cooldown: 10
-  trigger: RIGHT_CLICK
-  unlock-level: 10
+  unlock:
+    permission: sakurammo.skill.warlock_drain_life
 
 warlock_summon_imp:
   display-name: 召唤小鬼
   class: warlock
   mythic-skill: warlock_summon_imp
-  icon: BLAZE_ROD
-  resource: shard
-  cost: 50
-  cooldown: 25
-  trigger: RIGHT_CLICK
-  unlock-level: 15
-
-warlock_haunt:
-  display-name: 缠魂
-  class: warlock
-  mythic-skill: warlock_haunt
-  icon: SOUL_LANTERN
-  resource: shard
-  cost: 40
-  cooldown: 12
-  trigger: RIGHT_CLICK
-  unlock-level: 20
-
-warlock_demonic_frenzy:
-  display-name: 恶魔狂乱
-  class: warlock
-  mythic-skill: warlock_demonic_frenzy
-  icon: NETHER_STAR
-  resource: shard
-  cost: 70
-  cooldown: 120
-  trigger: RIGHT_CLICK
-  unlock-level: 30
-
-warlock_soul_barrier:
-  display-name: 灵魂结界
-  class: warlock
-  mythic-skill: warlock_soul_barrier
-  icon: OBSIDIAN
-  resource: shard
-  cost: 40
+  icon: MAGMA_CREAM
+  resource: soul_shards
+  cost: 3
   cooldown: 30
   trigger: RIGHT_CLICK
-  unlock-level: 40
+  unlock:
+    permission: sakurammo.skill.warlock_summon_imp
 
 warlock_soul_harvest:
   display-name: 灵魂收割
   class: warlock
   mythic-skill: warlock_soul_harvest
-  icon: GHAST_TEAR
-  resource: shard
+  icon: SOUL_TORCH
+  resource: soul_shards
   cost: 0
-  cooldown: 30
-  trigger: RIGHT_CLICK
-  unlock-level: 25
-
-warlock_dark_pact:
-  display-name: 黑暗契约
-  class: warlock
-  icon: OBSIDIAN
-  cooldown: 0
+  cooldown: 10
   trigger: PASSIVE
-  unlock-level: 1
-  passive-stat: health
-  passive-value: 4
-
-warlock_siphon:
-  display-name: 灵魂虹吸
-  class: warlock
-  icon: GHAST_TEAR
-  cooldown: 0
-  trigger: PASSIVE
-  unlock-level: 15
-  passive-stat: regeneration
-  passive-value: 1
-
-warlock_void_skin:
-  display-name: 虚空之肤
-  class: warlock
-  icon: OBSIDIAN
-  cooldown: 0
-  trigger: PASSIVE
-  unlock-level: 30
-  passive-stat: toughness
-  passive-value: 2
-
-warlock_warlock_master:
-  display-name: 术士大师
-  class: warlock
-  icon: NETHER_STAR
-  cooldown: 0
-  trigger: PASSIVE
-  unlock-level: 50
-  passive-stat: strength
-  passive-value: 2
+  unlock:
+    permission: sakurammo.skill.warlock_soul_harvest

@@ -256,11 +256,7 @@ public final class ConfigManager {
                     Math.max(0.0D, sec.getDouble("cooldown", 0.0D)),
                     TriggerType.parse(sec.getString("trigger", "RIGHT_CLICK")),
                     sec.getString("unlock.permission", ""),
-                    material(sec.getString("icon")),
-                    Math.max(1, sec.getInt("unlock-level", 1)),
-                    sec.getString("passive-stat", "").toLowerCase(Locale.ROOT),
-                    Math.max(0.0D, sec.getDouble("passive-value", 0.0D)),
-                    sec.getString("passive-special", "").toLowerCase(Locale.ROOT)
+                    material(sec.getString("icon"))
             ));
         }
         plugin.getLogger().info("已加载 " + skills.size() + " 个技能入口定义。");

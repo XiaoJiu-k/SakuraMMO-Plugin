@@ -52,26 +52,20 @@ public final class SkillBindMenu extends Menu {
                     p -> new KeySelectMenu(plugin, p, null).open()); // 点空槽去下面选
         }
 
-        // 下方：职业技能库（按解锁等级排序；未解锁灰显不可点）
-        List<SkillDefinition> bindable = new ArrayList<>();
+        // 下方：职业技能列表（点击进二级按键选择）
+        int slot = 19;
         for (String skillId : definition.skills()) {
             SkillDefinition skill = plugin.config().skill(skillId);
-            if (skill != null && skill.trigger().bindable()) {
-                bindable.add(skill);
+            if (skill == null || !skill.trigger().bindable()) {
+                continue;
             }
-        }
-        bindable.sort(java.util.Comparator.comparingInt(SkillDefinition::unlockLevel));
-        int slot = 19;
-        for (SkillDefinition skill : bindable) {
+            String boundKey = boundKeyOf(profile, skillId);
+            set(slot, skillIcon(skill, boundKey),
+                    p -> new KeySelectMenu(plugin, p, skillId).open());
+            slot++;
             if (slot > 25) {
                 break;
             }
-            String boundKey = boundKeyOf(profile, skill.id());
-            boolean unlocked = skill.unlockedAt(player.getLevel());
-            final SkillDefinition def = skill;
-            set(slot, skillIcon(skill, boundKey, unlocked),
-                    unlocked ? p -> new KeySelectMenu(plugin, p, def.id()).open() : null);
-            slot++;
         }
 
         set(31, Items.of(Material.ARROW, Msg.raw("menu.back-to-hub"), List.of()),
@@ -104,11 +98,10 @@ public final class SkillBindMenu extends Menu {
         return Items.of(material, Msg.raw("menu.key-slot-name", "key", keyDisplay), lore);
     }
 
-    /** 职业技能图标（含解锁状态与已绑定按键标记）。 */
-    private org.bukkit.inventory.ItemStack skillIcon(SkillDefinition skill, String boundKey, boolean unlocked) {
+    /** 职业技能图标（含已绑定按键标记）。 */
+    private org.bukkit.inventory.ItemStack skillIcon(SkillDefinition skill, String boundKey) {
         List<String> lore = new ArrayList<>();
-        lore.add(Msg.raw(unlocked ? "menu.skill-click-hint" : "menu.skill-locked-line",
-                "level", String.valueOf(skill.unlockLevel())));
+        lore.add(Msg.raw("menu.skill-click-hint"));
         if (boundKey != null) {
             lore.add(Msg.raw("menu.skill-bound-key", "key", boundKey));
         }
@@ -117,11 +110,7 @@ public final class SkillBindMenu extends Menu {
                         ? Msg.raw("skill.bind-ready")
                         : String.valueOf(plugin.skills().cooldownRemaining(player, skill.id()) / 1000) + "s"));
         Material material = skill.icon() == null ? Material.BLAZE_POWDER : skill.icon();
-        if (!unlocked) {
-            material = Material.GRAY_DYE;
-        }
-        String name = (unlocked ? skill.displayName() : "&8" + skill.displayName())
-                + (boundKey == null ? "" : " " + boundKey);
+        String name = skill.displayName() + (boundKey == null ? "" : " " + boundKey);
         return Items.of(material, name, lore);
     }
 
