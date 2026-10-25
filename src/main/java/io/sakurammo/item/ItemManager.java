@@ -127,6 +127,15 @@ public final class ItemManager {
             }
             Integer modelData = sec.isInt("custom-model-data") || sec.contains("custom-model-data")
                     ? sec.getInt("custom-model-data") : null;
+            ItemDefinition.RangedAttack ranged = null;
+            ConfigurationSection rangedSec = sec.getConfigurationSection("ranged-attack");
+            if (rangedSec != null) {
+                ranged = new ItemDefinition.RangedAttack(
+                        Math.max(0.5D, rangedSec.getDouble("damage", 4.0D)),
+                        Math.max(4.0D, rangedSec.getDouble("range", 24.0D)),
+                        Math.max(0.4D, rangedSec.getDouble("speed", 1.7D)),
+                        Math.max(0L, rangedSec.getLong("cooldown-ms", 600L)));
+            }
             definitions.put(id.toLowerCase(Locale.ROOT), new ItemDefinition(
                     id.toLowerCase(Locale.ROOT),
                     firstNonBlank(sec.getString("display"), sec.getString("display-name"), id),
@@ -141,7 +150,8 @@ public final class ItemManager {
                     modelData,
                     blankToNull(sec.getString("required-class")),
                     sec.getBoolean("soulbound", false),
-                    sec.getBoolean("starter", false)));
+                    sec.getBoolean("starter", false),
+                    ranged));
         }
 
         ConfigurationSection setSec = cfg.getConfigurationSection("sets");
@@ -339,6 +349,9 @@ public final class ItemManager {
         }
         if (def.soulbound() && lore.stream().noneMatch(line -> line.contains("灵魂绑定"))) {
             lore.add("&4【已灵魂绑定】");
+        }
+        if (def.rangedAttack() != null && lore.stream().noneMatch(line -> line.contains("右键"))) {
+            lore.add("&d右键：&f释放灵魂火弹（" + Text.number(def.rangedAttack().damage()) + " 点伤害）");
         }
         meta.lore(lore.stream().map(Items::component).toList());
 

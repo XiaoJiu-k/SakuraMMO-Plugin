@@ -28,3 +28,9 @@ faint_ember:
     - "&4【已灵魂绑定】"
   attributes:
     attack-damage: 2.5
+  # 右键远程基础攻击（v4.2.4）：发射灵魂火弹，命中按 damage 结算（吃护甲与属性）
+  ranged-attack:
+    damage: 4.0
+    range: 24.0      # 最大飞行距离（方块）
+    speed: 1.7       # 初速度，>1.5 近乎直线
+    cooldown-ms: 600 # 冷却，连点只出一次

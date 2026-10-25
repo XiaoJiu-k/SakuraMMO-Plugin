@@ -125,6 +125,7 @@ public final class SakuraMMOPlugin extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new io.sakurammo.item.ItemEffectListener(this), this);
         Bukkit.getPluginManager().registerEvents(new io.sakurammo.listener.ClassRestrictionListener(this), this);
         Bukkit.getPluginManager().registerEvents(new io.sakurammo.listener.StarterListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new io.sakurammo.listener.RangedAttackListener(this), this);
         menus.register();
         parties.start();
 

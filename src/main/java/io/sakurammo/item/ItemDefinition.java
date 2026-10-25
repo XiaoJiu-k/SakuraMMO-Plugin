@@ -22,6 +22,7 @@ import java.util.Map;
  * @param requiredClass   限定职业 id（null = 不限）；非该职业持有时伤害/交互被拦截
  * @param soulbound       灵魂绑定：不可丢弃、不可入容器、死亡不掉（v4.2.3）
  * @param starter         是否为新手指引物品（选职业时自动发放，可用 /sm starter 重领）
+ * @param rangedAttack    右键远程基础攻击（null = 无；v4.2.4）
  */
 public record ItemDefinition(
         String id,
@@ -37,8 +38,20 @@ public record ItemDefinition(
         Integer customModelData,
         String requiredClass,
         boolean soulbound,
-        boolean starter
+        boolean starter,
+        RangedAttack rangedAttack
 ) {
+
+    /**
+     * 右键远程攻击参数（v4.2.4）。
+     *
+     * @param damage     命中伤害（按玩家为来源结算，吃属性加成）
+     * @param range      最大飞行距离（方块），超出即消散
+     * @param speed      初速度（约 1.0 ≈ 轻微下坠；>1.5 近乎直线）
+     * @param cooldownMs 冷却毫秒（连点只出一次）
+     */
+    public record RangedAttack(double damage, double range, double speed, long cooldownMs) {
+    }
 
     /** 是否限定职业。 */
     public boolean hasClassLock() {

@@ -89,8 +89,7 @@ public final class StarterItemManager {
         if (item == null) {
             return false;
         }
-        player.getInventory().addItem(item).values()
-                .forEach(left -> player.getWorld().dropItemNaturally(player.getLocation(), left));
+        giveToFirstSlot(player, item);
 
         recordClaim(player);
         if (messageKey != null) {
@@ -129,6 +128,37 @@ public final class StarterItemManager {
     }
 
     // ==================== 查询 ====================
+
+    /**
+     * 发放到<b>第一格</b>（快捷栏 1 号位），让玩家一眼看到、直接能拿起来用。
+     * <p>
+     * 1 号位被占用时依次退让：空快捷栏 → 空背包格 → 直接塞背包 → 实在满了才掉在脚下
+     * （绝不覆盖玩家已有物品）。
+     */
+    private void giveToFirstSlot(Player player, ItemStack item) {
+        var inventory = player.getInventory();
+        ItemStack first = inventory.getItem(0);
+        if (first == null || first.getType().isAir()) {
+            inventory.setItem(0, item);
+            return;
+        }
+        for (int slot = 1; slot < 9; slot++) {
+            ItemStack current = inventory.getItem(slot);
+            if (current == null || current.getType().isAir()) {
+                inventory.setItem(slot, item);
+                return;
+            }
+        }
+        for (int slot = 9; slot < 36; slot++) {
+            ItemStack current = inventory.getItem(slot);
+            if (current == null || current.getType().isAir()) {
+                inventory.setItem(slot, item);
+                return;
+            }
+        }
+        inventory.addItem(item).values()
+                .forEach(left -> player.getWorld().dropItemNaturally(player.getLocation(), left));
+    }
 
     /**
      * 物品是否还在玩家身上：背包（含盔甲/副手，1.21 {@code getContents()} 已含 41 格）+ 末影箱。
