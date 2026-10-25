@@ -1,0 +1,30 @@
+# ============================================================
+# 武器定义（v4.2.3）
+# 说明：本文件用「根级物品」写法（与任务书一致）。
+#      engine 同时兼容 items/*.yml 里的 `items:` 包裹写法，两种都能加载。
+# 字段：
+#   display-name / base-material  —— 任务书写法（旧文件里的 display / material 也认）
+#   custom-model-data             —— 资源包模型编号（配好资源包后自动生效）
+#   required-class                —— 限定职业 id；非该职业持有攻击/右键全部拦截
+#   soulbound                     —— 灵魂绑定：不可丢弃、不可入容器、死亡不掉
+#   starter                       —— 新手指引物品：选职业自动发放 + /sm starter 重领
+#   value                         —— 卖出价值；0 = 不可卖（新手信物不能换钱）
+# ============================================================
+
+faint_ember:
+  display-name: "&d微光余烬"
+  base-material: TORCH
+  custom-model-data: 2001
+  rarity: UNCOMMON
+  tier: 1
+  value: 0
+  required-class: warlock
+  soulbound: true
+  starter: true
+  lore:
+    - "&7术士的启蒙信物，散发着微弱的灵魂火光。"
+    - "&8新手专属"
+    - "&c【职业限制：术士】"
+    - "&4【已灵魂绑定】"
+  attributes:
+    attack-damage: 2.5

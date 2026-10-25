@@ -47,6 +47,13 @@ public final class ItemManager {
     public static final NamespacedKey KEY_TIER = new NamespacedKey("sakurammo", "item_tier");
     /** 卖出价值（防刷金：按配置价值 × 回收率）。 */
     public static final NamespacedKey KEY_VALUE = new NamespacedKey("sakurammo", "item_value");
+    /** 灵魂绑定标记（v4.2.3）：监听器只认它，不做配置查询。 */
+    public static final NamespacedKey KEY_SOULBOUND = new NamespacedKey("sakurammo", "item_soulbound");
+    /** 限定职业 id（v4.2.3）：非该职业持有即拦截。 */
+    public static final NamespacedKey KEY_CLASS = new NamespacedKey("sakurammo", "item_class");
+
+    /** 根级非物品键（兼容「物品直接写在根上」的写法时跳过）。 */
+    private static final Set<String> RESERVED_KEYS = Set.of("items", "sets", "resource-version", "version");
 
     private static final String SET_PREFIX = "set_";
 
@@ -78,49 +85,63 @@ public final class ItemManager {
     private void loadFile(File file) {
         YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
         ConfigurationSection items = cfg.getConfigurationSection("items");
-        if (items != null) {
-            for (String id : items.getKeys(false)) {
-                ConfigurationSection sec = items.getConfigurationSection(id);
-                if (sec == null) {
-                    continue;
-                }
-                Material material = Material.matchMaterial(sec.getString("material", ""));
-                if (material == null) {
-                    plugin.getLogger().warning("物品 " + id + " 的材质无效：" + sec.getString("material"));
-                    continue;
-                }
-                Map<String, Double> attributes = new LinkedHashMap<>();
-                ConfigurationSection attrSec = sec.getConfigurationSection("attributes");
-                if (attrSec != null) {
-                    for (String key : attrSec.getKeys(false)) {
-                        attributes.put(key.toLowerCase(Locale.ROOT), attrSec.getDouble(key));
-                    }
-                }
-                List<ItemEffect> effects = new ArrayList<>();
-                for (Map<?, ?> raw : sec.getMapList("effects")) {
-                    ItemEffect.Type type = ItemEffect.Type.parse(String.valueOf(raw.get("type")));
-                    if (type == null) {
-                        plugin.getLogger().warning("物品 " + id + " 的效果类型无效：" + raw.get("type"));
-                        continue;
-                    }
-                    effects.add(new ItemEffect(
-                            type,
-                            clamp01(num(raw.get("chance"), 0.05D)),
-                            num(raw.get("value"), 1.0D),
-                            Math.max(0.0D, num(raw.get("cooldown"), 3.0D))));
-                }
-                definitions.put(id.toLowerCase(Locale.ROOT), new ItemDefinition(
-                        id.toLowerCase(Locale.ROOT),
-                        sec.getString("display", id),
-                        material,
-                        ItemDefinition.Rarity.parse(sec.getString("rarity", "COMMON")),
-                        Math.max(1, sec.getInt("tier", 1)),
-                        blankToNull(sec.getString("set")),
-                        list(sec.getStringList("lore")),
-                        Map.copyOf(attributes),
-                        List.copyOf(effects),
-                        Math.max(0.0D, sec.getDouble("value", 0.0D))));
+        if (items == null) {
+            // 兼容「物品直接写在根上」的写法（任务书格式）：根上除了 sets / resource-version 全都是物品
+            items = cfg;
+        }
+        for (String id : items.getKeys(false)) {
+            if (RESERVED_KEYS.contains(id.toLowerCase(Locale.ROOT))) {
+                continue;
             }
+            ConfigurationSection sec = items.getConfigurationSection(id);
+            if (sec == null) {
+                continue;
+            }
+            // 兼容两套写法：material/display（引擎原生） 与 base-material/display-name（任务书）
+            String rawMaterial = firstNonBlank(sec.getString("material"), sec.getString("base-material"));
+            Material material = Material.matchMaterial(rawMaterial == null ? "" : rawMaterial.trim());
+            if (material == null) {
+                plugin.getLogger().warning("物品 " + id + " 的材质无效：" + rawMaterial);
+                continue;
+            }
+            Map<String, Double> attributes = new LinkedHashMap<>();
+            ConfigurationSection attrSec = sec.getConfigurationSection("attributes");
+            if (attrSec != null) {
+                for (String key : attrSec.getKeys(false)) {
+                    // attack-damage / attack_damage 两种写法都收
+                    attributes.put(key.toLowerCase(Locale.ROOT).replace('-', '_'), attrSec.getDouble(key));
+                }
+            }
+            List<ItemEffect> effects = new ArrayList<>();
+            for (Map<?, ?> raw : sec.getMapList("effects")) {
+                ItemEffect.Type type = ItemEffect.Type.parse(String.valueOf(raw.get("type")));
+                if (type == null) {
+                    plugin.getLogger().warning("物品 " + id + " 的效果类型无效：" + raw.get("type"));
+                    continue;
+                }
+                effects.add(new ItemEffect(
+                        type,
+                        clamp01(num(raw.get("chance"), 0.05D)),
+                        num(raw.get("value"), 1.0D),
+                        Math.max(0.0D, num(raw.get("cooldown"), 3.0D))));
+            }
+            Integer modelData = sec.isInt("custom-model-data") || sec.contains("custom-model-data")
+                    ? sec.getInt("custom-model-data") : null;
+            definitions.put(id.toLowerCase(Locale.ROOT), new ItemDefinition(
+                    id.toLowerCase(Locale.ROOT),
+                    firstNonBlank(sec.getString("display"), sec.getString("display-name"), id),
+                    material,
+                    ItemDefinition.Rarity.parse(sec.getString("rarity", "COMMON")),
+                    Math.max(1, sec.getInt("tier", 1)),
+                    blankToNull(sec.getString("set")),
+                    list(sec.getStringList("lore")),
+                    Map.copyOf(attributes),
+                    List.copyOf(effects),
+                    Math.max(0.0D, sec.getDouble("value", 0.0D)),
+                    modelData,
+                    blankToNull(sec.getString("required-class")),
+                    sec.getBoolean("soulbound", false),
+                    sec.getBoolean("starter", false)));
         }
 
         ConfigurationSection setSec = cfg.getConfigurationSection("sets");
@@ -173,6 +194,15 @@ public final class ItemManager {
         return raw == null || raw.isBlank() ? null : raw.toLowerCase(Locale.ROOT);
     }
 
+    private static String firstNonBlank(String... values) {
+        for (String value : values) {
+            if (value != null && !value.isBlank()) {
+                return value;
+            }
+        }
+        return null;
+    }
+
     // ==================== 查询 ====================
 
     public Collection<ItemDefinition> all() {
@@ -213,6 +243,49 @@ public final class ItemManager {
         return value == null ? 0.0D : value;
     }
 
+    /** 是否灵魂绑定（只认 PDC，配置改了也不会误判已有物品）。 */
+    public boolean isSoulbound(ItemStack item) {
+        if (item == null || item.getType().isAir() || !item.hasItemMeta()) {
+            return false;
+        }
+        Byte flag = item.getItemMeta().getPersistentDataContainer()
+                .get(KEY_SOULBOUND, PersistentDataType.BYTE);
+        return flag != null && flag != 0;
+    }
+
+    /** 限定职业 id（非限定物品返回 null）。 */
+    public String classLockOf(ItemStack item) {
+        if (item == null || item.getType().isAir() || !item.hasItemMeta()) {
+            return null;
+        }
+        return item.getItemMeta().getPersistentDataContainer().get(KEY_CLASS, PersistentDataType.STRING);
+    }
+
+    /** 某职业的新手物品 id 列表（starter: true + required-class 匹配）。 */
+    public List<String> starterItems(String classId) {
+        if (classId == null) {
+            return List.of();
+        }
+        List<String> out = new ArrayList<>();
+        for (ItemDefinition def : definitions.values()) {
+            if (def.starter() && classId.equalsIgnoreCase(def.requiredClass())) {
+                out.add(def.id());
+            }
+        }
+        return out;
+    }
+
+    /** 全部新手指引物品（含无职业限定的）。 */
+    public List<ItemDefinition> starterDefinitions() {
+        List<ItemDefinition> out = new ArrayList<>();
+        for (ItemDefinition def : definitions.values()) {
+            if (def.starter()) {
+                out.add(def);
+            }
+        }
+        return out;
+    }
+
     // ==================== 生成 ====================
 
     public ItemStack create(String id, int amount) {
@@ -226,10 +299,18 @@ public final class ItemManager {
             return item;
         }
 
-        meta.displayName(Items.component(def.rarity().color() + def.display()));
+        // 名字里已经写了色码（如 "&d微光余烬"）就用它自己的颜色，否则按稀有度上色
+        String rawName = def.display();
+        String name = rawName.indexOf('&') >= 0 || rawName.indexOf('§') >= 0
+                ? rawName : def.rarity().color() + rawName;
+        meta.displayName(Items.component(name));
 
         List<String> lore = new ArrayList<>();
-        lore.add("&8" + def.rarity().label() + " · T" + def.tier());
+        if (def.starter()) {
+            lore.add("&8新手信物 · 不可交易");
+        } else {
+            lore.add("&8" + def.rarity().label() + " · T" + def.tier());
+        }
         if (def.setId() != null) {
             SetBonus bonus = sets.get(def.setId());
             if (bonus != null) {
@@ -251,7 +332,20 @@ public final class ItemManager {
                 lore.add("&d✦ " + effectLine(effect));
             }
         }
+        // 职业限制 / 灵魂绑定：引擎统一生成（yml 里写过的就不重复，避免两行一样的字）
+        if (def.hasClassLock() && lore.stream().noneMatch(line -> line.contains("职业限制"))) {
+            lore.add("");
+            lore.add("&c【职业限制：" + classDisplay(def.requiredClass()) + "】");
+        }
+        if (def.soulbound() && lore.stream().noneMatch(line -> line.contains("灵魂绑定"))) {
+            lore.add("&4【已灵魂绑定】");
+        }
         meta.lore(lore.stream().map(Items::component).toList());
+
+        // 资源包模型编号（1.21.4 仍是 custom_model_data；配好资源包后自动生效）
+        if (def.customModelData() != null) {
+            meta.setCustomModelData(def.customModelData());
+        }
 
         // 原版属性词条：每件装备的 modifier 用独立 UUID，重复 UUID 会互相覆盖（任务书坑表）
         EquipmentSlotGroup group = slotGroupOf(def.material());
@@ -276,8 +370,23 @@ public final class ItemManager {
         if (def.setId() != null) {
             pdc.set(KEY_SET, PersistentDataType.STRING, def.setId());
         }
+        if (def.soulbound()) {
+            pdc.set(KEY_SOULBOUND, PersistentDataType.BYTE, (byte) 1);
+        }
+        if (def.hasClassLock()) {
+            pdc.set(KEY_CLASS, PersistentDataType.STRING, def.requiredClass());
+        }
         item.setItemMeta(meta);
         return item;
+    }
+
+    /** 职业显示名（"warlock" → "术士"）；未知职业回落到 id。 */
+    public String classDisplay(String classId) {
+        if (classId == null) {
+            return "-";
+        }
+        var definition = plugin.config().classOf(classId);
+        return definition == null ? classId : definition.displayName();
     }
 
     private String effectLine(ItemEffect effect) {

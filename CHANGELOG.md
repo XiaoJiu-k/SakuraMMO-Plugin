@@ -1,5 +1,15 @@
 # SakuraMMO 插件 · 版本变更记录
 
+## v4.2.3（2026-10-25）—— 术士新手信物「微光余烬」与灵魂绑定
+
+- **新物品 `faint_ember`（微光余烬）**：底层 `TORCH` + `custom-model-data: 2001`，攻击力 +2.5，术士专用
+- `ItemDefinition` 新增 `custom-model-data / required-class / soulbound / starter` 四个字段
+- **职业限制**：非术士手持该武器 → 攻击取消（`EntityDamageByEntityEvent`）、右键取消（`PlayerInteractEvent`，含空气与方块）
+- **灵魂绑定**：不可丢弃、不可入容器（箱子/末影箱/潜影盒/铁砧/交易/漏斗/展示框）、死亡不掉（复活归还）
+- **新手发放**：选职业后自动发放（`ClassChangeEvent`）+ 登录兜底；`/sm starter` 可在丢失后重领
+- 重领防复制：判定「背包 + 盔甲 + 副手 + 末影箱」四处，任何一处还有就拒绝；玩家 PDC 另记领取次数作审计
+- 修复：物品引擎支持 `display-name` / `base-material` / `attack-damage` 写法与「根级物品」配置（任务书格式无需改写）
+
 ## v4.2.1（2026-10-25）—— 副本背包保留
 
 - **修复**：进副本不再清空背包（此前会快照+清空，进本后赤手空拳）

@@ -34,7 +34,7 @@ public final class SakuraCommand implements CommandExecutor, TabCompleter {
     private static final List<String> ROOT = List.of("menu", "skills", "class", "resource", "party", "dungeon",
             "raid", "talent", "craft", "money", "sell", "addxp", "givemat",
             "weekly", "upgrade", "redeem", "admin",
-            "bind", "unbind", "binds", "cast", "reload", "debug", "item");
+            "bind", "unbind", "binds", "cast", "reload", "debug", "item", "starter");
     private static final List<String> CLASS_SUB = List.of("list", "select", "switch", "info", "reset");
     private static final List<String> PARTY_SUB = List.of("create", "invite", "accept", "leave", "kick", "disband", "info");
     private static final List<String> DUNGEON_SUB = List.of("start", "leave", "info", "stop");
@@ -141,6 +141,9 @@ public final class SakuraCommand implements CommandExecutor, TabCompleter {
             }
             case "item" -> {
                 return handleItem(sender, args);
+            }
+            case "starter" -> {
+                return handleStarter(sender);
             }
             default -> {
                 Msg.send(sender, "general.unknown-subcommand", "sub", sub);
@@ -890,6 +893,25 @@ public final class SakuraCommand implements CommandExecutor, TabCompleter {
                 "skills", String.valueOf(plugin.config().skillCount()),
                 "messages", String.valueOf(Msg.size()));
         Msg.sendRaw(sender, "reload.playerdata-untouched");
+        return true;
+    }
+
+    /**
+     * /sm starter —— 重领本职业的新手指引物品（v4.2.3）。
+     * <p>
+     * 只有「物品确实不在身上」才发放：背包 / 盔甲 / 副手 / 末影箱任一处还有就提示已拥有，
+     * 因此重复执行不会复制（判定在 {@code StarterItemManager#claim} 里）。
+     */
+    private boolean handleStarter(CommandSender sender) {
+        if (!(sender instanceof Player player)) {
+            Msg.send(sender, "general.player-only");
+            return true;
+        }
+        if (!player.hasPermission("sakurammo.use")) {
+            Msg.send(sender, "general.no-permission");
+            return true;
+        }
+        plugin.starter().reclaim(player);
         return true;
     }
 

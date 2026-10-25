@@ -420,3 +420,22 @@ item:
   unknown-id: "&c未知物品 id：&f{id}&c（用 /sm item list 查看）"
   bad-amount: "&c数量必须是 1~64 的整数。"
   given: "&a已给予 &f{player} &a{item} × {amount}"
+
+# ==================== 新手指引物品（v4.2.3） ====================
+starter:
+  granted-class: "&a已获得 {item}&a（{class}新手信物）"
+  reclaimed: "&a已重新领取 {item}&a。"
+  actionbar: "&a已获得新手信物：{item}"
+  already-owned: "&e你已拥有 {item}&e，无需重复领取。"
+  no-class: "&c你还没有选择职业，无法领取新手信物。"
+  none-for-class: "&7你的职业没有新手信物。"
+  class-mismatch: "&c{item} &c是 {class} 专用物品，你无法使用。"
+
+# ==================== 灵魂绑定（v4.2.3） ====================
+soulbind:
+  class-mismatch: "&c职业不符：&f{item} &c只有 &f{class} &c可以使用。"
+  class-mismatch-bar: "&c职业不符 · &f{class}&c 专用"
+  no-drop: "&c{item} &c已灵魂绑定，无法丢弃。"
+  no-container: "&c{item} &c已灵魂绑定，无法存入容器。"
+  no-place: "&c{item} &c已灵魂绑定，无法放置。"
+  returned: "&a你的 &f{count} &a件灵魂绑定物品已归还。"

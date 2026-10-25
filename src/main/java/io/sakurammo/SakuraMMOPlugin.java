@@ -65,6 +65,7 @@ public final class SakuraMMOPlugin extends JavaPlugin {
     private InstanceManager instances;
     private LootManager loot;
     private io.sakurammo.item.ItemManager items;
+    private io.sakurammo.item.StarterItemManager starter;
     private io.sakurammo.loot.BossDropService bossDrops;
 
     private Object placeholderHandle;
@@ -110,6 +111,7 @@ public final class SakuraMMOPlugin extends JavaPlugin {
         // v4.2：固定属性物品引擎（items/*.yml）
         items = new io.sakurammo.item.ItemManager(this);
         items.load();
+        starter = new io.sakurammo.item.StarterItemManager(this);
         bossDrops = new io.sakurammo.loot.BossDropService(this);
         instances.startupCleanup(); // 兜底：删除宕机残留的 instance_* 世界目录
         parties.recoverFromCrash(); // 上次非正常结束的副本队伍 → IDLE（玩家背包在其上线时恢复）
@@ -121,6 +123,8 @@ public final class SakuraMMOPlugin extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new DungeonListener(this), this);
         Bukkit.getPluginManager().registerEvents(new io.sakurammo.listener.DurabilityListener(this), this);
         Bukkit.getPluginManager().registerEvents(new io.sakurammo.item.ItemEffectListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new io.sakurammo.listener.ClassRestrictionListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new io.sakurammo.listener.StarterListener(this), this);
         menus.register();
         parties.start();
 
@@ -270,6 +274,10 @@ public final class SakuraMMOPlugin extends JavaPlugin {
 
     public io.sakurammo.item.ItemManager items() {
         return items;
+    }
+
+    public io.sakurammo.item.StarterItemManager starter() {
+        return starter;
     }
 
     public io.sakurammo.loot.BossDropService bossDrops() {

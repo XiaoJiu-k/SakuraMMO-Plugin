@@ -30,7 +30,7 @@ public final class ConfigManager {
 
     /** 固定属性物品定义文件（首次启动释放到 items/）。 */
     public static final List<String> DEFAULT_ITEM_FILES =
-            List.of("materials.yml", "equipment.yml", "sets.yml");
+            List.of("materials.yml", "equipment.yml", "sets.yml", "weapons.yml");
 
     /** 内置副本 id（首次启动释放到 dungeons/，模板引导生成后会按实测坐标重写）。 */
     public static final List<String> DEFAULT_DUNGEON_IDS =
