@@ -62,3 +62,52 @@ recipes:
       mana_crystal: 6
       dark_core: 2
     fee: 150
+
+  # ===== v4.2 固定属性装备（output-item = 产物 id；cost-items = 以固定属性物品为材料） =====
+  craft_miner_blade:
+    display: 矿工短剑
+    color: "&9"
+    cost-items:
+      rough_crystal: 6
+      star_dust: 2
+    fee: 60
+    output-item: miner_blade
+
+  craft_forest_bow:
+    display: 森林长弓
+    color: "&9"
+    cost-items:
+      forest_resin: 5
+      shadow_silk: 1
+    fee: 80
+    output-item: forest_bow
+
+  craft_blackiron_greatsword:
+    display: 黑铁巨剑
+    color: "&5"
+    cost-materials:
+      blackiron_ingot: 4
+      mana_crystal: 2
+    cost-items:
+      mithril_fleck: 1
+    fee: 220
+    output-item: blackiron_greatsword
+
+  craft_molten_staff:
+    display: 熔火法杖
+    color: "&5"
+    cost-items:
+      molten_shard: 4
+      frost_crystal: 2
+    fee: 260
+    output-item: molten_staff
+
+  craft_dragon_verdict:
+    display: 巨龙裁决
+    color: "&c"
+    cost-items:
+      dragon_scale: 4
+      dragon_soul: 1
+      ancient_rune: 2
+    fee: 800
+    output-item: dragon_verdict

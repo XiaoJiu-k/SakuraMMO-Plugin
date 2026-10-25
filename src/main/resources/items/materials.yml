@@ -1,0 +1,104 @@
+# ============================================================
+# 材料库（v4.2）—— 副本与野外产出，锻造 / 升级的消耗品
+# value: 0 = 不可卖出（防刷金：材料只能用于制造）
+# ============================================================
+
+items:
+  rough_crystal:
+    display: 粗糙矿晶
+    material: IRON_NUGGET
+    rarity: COMMON
+    tier: 1
+    value: 0
+    lore:
+      - "&7新手矿洞最常见的东西，锻造的基础。"
+
+  forest_resin:
+    display: 森林树脂
+    material: SLIME_BALL
+    rarity: UNCOMMON
+    tier: 1
+    value: 0
+    lore:
+      - "&7幽暗森林古树的汁液，柔韧而耐火。"
+
+  star_dust:
+    display: 星辰粉尘
+    material: GLOWSTONE_DUST
+    rarity: UNCOMMON
+    tier: 1
+    value: 0
+    lore:
+      - "&7夜里会发微光，据说能引导法术。"
+
+  frost_crystal:
+    display: 冰晶
+    material: PRISMARINE_CRYSTALS
+    rarity: RARE
+    tier: 2
+    value: 0
+    lore:
+      - "&7熔火与冰霜交界处的产物，触手冰凉。"
+
+  shadow_silk:
+    display: 幽影丝
+    material: STRING
+    rarity: RARE
+    tier: 2
+    value: 0
+    lore:
+      - "&7幽暗森林深处的蛛丝，轻而韧。"
+
+  mithril_fleck:
+    display: 秘银碎屑
+    material: GOLD_NUGGET
+    rarity: EPIC
+    tier: 3
+    value: 0
+    lore:
+      - "&7锻造高阶武器的催化剂。"
+
+  molten_shard:
+    display: 熔火碎片
+    material: MAGMA_CREAM
+    rarity: EPIC
+    tier: 3
+    value: 0
+    lore:
+      - "&7熔火之心的碎片，余温久久不散。"
+
+  shadow_crystal:
+    display: 幽影结晶
+    material: ECHO_SHARD
+    rarity: EPIC
+    tier: 3
+    value: 0
+    lore:
+      - "&7吸收了太多暗影的结晶，会发出低鸣。"
+
+  ancient_rune:
+    display: 远古符文
+    material: PAPER
+    rarity: EPIC
+    tier: 3
+    value: 0
+    lore:
+      - "&7刻着看不懂的字，是图纸的载体。"
+
+  dragon_scale:
+    display: 龙鳞
+    material: PHANTOM_MEMBRANE
+    rarity: LEGENDARY
+    tier: 3
+    value: 0
+    lore:
+      - "&7巨龙神殿的鳞片，刀枪难入。"
+
+  dragon_soul:
+    display: 巨龙之魂
+    material: NETHER_STAR
+    rarity: MYTHIC
+    tier: 3
+    value: 0
+    lore:
+      - "&7巨龙陨落时留下的核心，传说中的锻造材料。"

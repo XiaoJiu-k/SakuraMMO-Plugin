@@ -64,6 +64,7 @@ public final class SakuraMMOPlugin extends JavaPlugin {
     private PartyManager parties;
     private InstanceManager instances;
     private LootManager loot;
+    private io.sakurammo.item.ItemManager items;
 
     private Object placeholderHandle;
     private boolean placeholderRegistered;
@@ -105,6 +106,9 @@ public final class SakuraMMOPlugin extends JavaPlugin {
         upgrades = new UpgradeManager(this);
         // v4.1：被动技能
         passives = new PassiveManager(this);
+        // v4.2：固定属性物品引擎（items/*.yml）
+        items = new io.sakurammo.item.ItemManager(this);
+        items.load();
         instances.startupCleanup(); // 兜底：删除宕机残留的 instance_* 世界目录
         parties.recoverFromCrash(); // 上次非正常结束的副本队伍 → IDLE（玩家背包在其上线时恢复）
 
@@ -114,6 +118,7 @@ public final class SakuraMMOPlugin extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new CombatListener(this), this);
         Bukkit.getPluginManager().registerEvents(new DungeonListener(this), this);
         Bukkit.getPluginManager().registerEvents(new io.sakurammo.listener.DurabilityListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new io.sakurammo.item.ItemEffectListener(this), this);
         menus.register();
         parties.start();
 
@@ -259,6 +264,10 @@ public final class SakuraMMOPlugin extends JavaPlugin {
 
     public PassiveManager passives() {
         return passives;
+    }
+
+    public io.sakurammo.item.ItemManager items() {
+        return items;
     }
 
     public ClassManager classManager() {

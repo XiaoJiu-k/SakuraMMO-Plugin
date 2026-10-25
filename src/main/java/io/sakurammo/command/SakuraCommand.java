@@ -34,10 +34,11 @@ public final class SakuraCommand implements CommandExecutor, TabCompleter {
     private static final List<String> ROOT = List.of("menu", "skills", "class", "resource", "party", "dungeon",
             "raid", "talent", "craft", "money", "sell", "addxp", "givemat",
             "weekly", "upgrade", "redeem", "admin",
-            "bind", "unbind", "binds", "cast", "reload", "debug");
+            "bind", "unbind", "binds", "cast", "reload", "debug", "item");
     private static final List<String> CLASS_SUB = List.of("list", "select", "switch", "info", "reset");
     private static final List<String> PARTY_SUB = List.of("create", "invite", "accept", "leave", "kick", "disband", "info");
     private static final List<String> DUNGEON_SUB = List.of("start", "leave", "info", "stop");
+    private static final List<String> ITEM_SUB = List.of("give", "list");
 
     private final SakuraMMOPlugin plugin;
 
@@ -137,6 +138,9 @@ public final class SakuraCommand implements CommandExecutor, TabCompleter {
             }
             case "debug" -> {
                 return handleDebug(sender);
+            }
+            case "item" -> {
+                return handleItem(sender, args);
             }
             default -> {
                 Msg.send(sender, "general.unknown-subcommand", "sub", sub);
@@ -889,6 +893,74 @@ public final class SakuraCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
+    /** /sm item give <player> <id> [数量] 与 /sm item list（GM 发放与查 id）。 */
+    private boolean handleItem(CommandSender sender, String[] args) {
+        if (!sender.hasPermission("sakurammo.admin")) {
+            Msg.send(sender, "general.no-permission");
+            return true;
+        }
+        if (args.length < 2) {
+            Msg.send(sender, "item.usage");
+            return true;
+        }
+        String action = args[1].toLowerCase(Locale.ROOT);
+        if (action.equals("list")) {
+            var all = new java.util.ArrayList<>(plugin.items().all());
+            all.sort(java.util.Comparator.comparing(io.sakurammo.item.ItemDefinition::tier)
+                    .thenComparing(io.sakurammo.item.ItemDefinition::id));
+            Msg.send(sender, "item.list-header", "count", String.valueOf(all.size()));
+            for (io.sakurammo.item.ItemDefinition def : all) {
+                Msg.send(sender, "item.list-entry",
+                        "id", def.id(),
+                        "name", def.display(),
+                        "rarity", def.rarity().label(),
+                        "tier", String.valueOf(def.tier()));
+            }
+            return true;
+        }
+        if (!action.equals("give")) {
+            Msg.send(sender, "item.usage");
+            return true;
+        }
+        if (args.length < 4) {
+            Msg.send(sender, "item.usage");
+            return true;
+        }
+        Player target = org.bukkit.Bukkit.getPlayer(args[2]);
+        if (target == null) {
+            Msg.send(sender, "general.player-not-found", "player", args[2]);
+            return true;
+        }
+        int amount = 1;
+        if (args.length >= 5) {
+            try {
+                amount = Math.max(1, Math.min(64, Integer.parseInt(args[4])));
+            } catch (NumberFormatException ignored) {
+                Msg.send(sender, "item.bad-amount");
+                return true;
+            }
+        }
+        String itemId = args[3].toLowerCase(Locale.ROOT);
+        ItemStack item = plugin.items().create(itemId, amount);
+        if (item == null) {
+            Msg.send(sender, "item.unknown-id", "id", itemId);
+            return true;
+        }
+        target.getInventory().addItem(item).values()
+                .forEach(left -> target.getWorld().dropItemNaturally(target.getLocation(), left));
+        plugin.audit().log(sender.getName(), "item-give",
+                target.getName() + " " + itemId + " x" + amount);
+        Msg.send(sender, "item.given",
+                "player", target.getName(),
+                "item", plugin.items().definition(itemId).map(io.sakurammo.item.ItemDefinition::display).orElse(itemId),
+                "amount", String.valueOf(amount));
+        return true;
+    }
+
+    private java.util.List<String> itemIds() {
+        return plugin.items().all().stream().map(io.sakurammo.item.ItemDefinition::id).toList();
+    }
+
     private boolean handleDebug(CommandSender sender) {
         if (!sender.hasPermission("sakurammo.admin")) {
             Msg.send(sender, "general.no-permission");
@@ -1003,6 +1075,18 @@ public final class SakuraCommand implements CommandExecutor, TabCompleter {
                 if (action.equals("info") || action.equals("reset")) {
                     return filter(onlineNames(), args[2]);
                 }
+            }
+            return List.of();
+        }
+        if (sub.equals("item")) {
+            if (args.length == 2) {
+                return filter(ITEM_SUB, args[1]);
+            }
+            if (args.length == 3 && args[1].equalsIgnoreCase("give")) {
+                return filter(onlineNames(), args[2]);
+            }
+            if (args.length == 4 && args[1].equalsIgnoreCase("give")) {
+                return filter(new ArrayList<>(itemIds()), args[3]);
             }
             return List.of();
         }

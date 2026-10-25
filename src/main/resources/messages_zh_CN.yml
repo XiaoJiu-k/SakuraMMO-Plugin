@@ -405,3 +405,11 @@ admin:
   players-hint: "&7玩家重置：&f/sm admin reset <玩家> <weekly|economy|dungeon>"
   giveall-money-broadcast: "&6管理员向全服发放了 &f{amount} &6金币！"
   giveall-material-broadcast: "&6管理员向全服发放了制造底材！"
+
+item:
+  usage: "&e用法：/sm item give <player> <id> [数量] &7| &e/sm item list"
+  list-header: "&6固定属性物品（共 {count} 件）："
+  list-entry: "&7- &f{name} &8[{rarity} T{tier}] &7id=&f{id}"
+  unknown-id: "&c未知物品 id：&f{id}&c（用 /sm item list 查看）"
+  bad-amount: "&c数量必须是 1~64 的整数。"
+  given: "&a已给予 &f{player} &a{item} × {amount}"

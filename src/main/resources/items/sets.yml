@@ -1,0 +1,42 @@
+# ============================================================
+# 套装加成（v4.2）—— 穿 2 件 / 4 件时通过 AuraSkills modifier 挂载
+# 属性名用 AuraSkills 的 9 项：strength/health/regeneration/luck/wisdom/
+#                          toughness/crit_chance/crit_damage/speed
+# ============================================================
+
+sets:
+  miner:
+    display: 矿工的坚忍
+    bonus-2:
+      toughness: 2
+    bonus-4:
+      health: 6
+
+  forest:
+    display: 林间疾行
+    bonus-2:
+      speed: 1
+    bonus-4:
+      regeneration: 2
+
+  blackiron:
+    display: 王庭铁壁
+    bonus-2:
+      toughness: 3
+    bonus-4:
+      health: 10
+
+  molten:
+    display: 熔火怒意
+    bonus-2:
+      strength: 3
+    bonus-4:
+      crit_damage: 15
+
+  dragon:
+    display: 巨龙威压
+    bonus-2:
+      health: 8
+    bonus-4:
+      strength: 6
+      crit_chance: 3

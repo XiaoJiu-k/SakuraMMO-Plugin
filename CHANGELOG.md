@@ -1,5 +1,14 @@
 # SakuraMMO 插件 · 版本变更记录
 
+## v4.2.0（2026-10-25）—— PVE 内容扩充（第一期：物品引擎）
+
+- **ItemManager 固定属性物品引擎**：items/*.yml → ItemStack（PDC `sakurammo:item_id` 身份、原版 AttributeModifier、品质色 lore）
+- 物品库 **35 件**：10 材料 + 5 武器 + 5 套防具（20 件），配 5 套套装加成（2/4 件）
+- **特殊效果**：落雷 / 中毒 / 吸血 / 缓慢 / 灼烧（概率 + 内置冷却，防递归）
+- **套装加成**：穿 2/4 件挂 AuraSkills modifier `set_<套装>_<件数>_<属性>`，与 class_/talent_/passive_ 互斥
+- 指令 `/sm item give <player> <id> [数量]`、`/sm item list`
+- 卖出定价接入：有 value 的物品按 25% 回收，材料 value=0 → 不可卖（防刷金）
+
 ## v4.1.1（2026-10-25）—— 无限耐久
 
 - **武器装备无限耐久**：取消 `PlayerItemDamageEvent`，武器/盔甲/工具/鞘翅一次性全覆盖（副本掉落、RPGLoot 词条、制造、升格产物都不再磨损）

@@ -53,9 +53,14 @@ public final class CraftingManager {
     public record CostEntry(String materialId, int amount) {
     }
 
+    /**
+     * @param outputItem v4.2：产物是固定属性物品 id（非空时忽略 item/attributes）
+     * @param itemCosts  v4.2：以固定属性物品为材料（itemId → 数量）
+     */
     public record RecipeDef(String id, String display, Material item, String color,
                             List<String> lore, Map<String, Double> attributes,
-                            List<CostEntry> costs, double fee) {
+                            List<CostEntry> costs, double fee,
+                            String outputItem, List<CostEntry> itemCosts) {
     }
 
     public CraftingManager(SakuraMMOPlugin plugin) {
@@ -109,6 +114,13 @@ public final class CraftingManager {
                         costs.add(new CostEntry(key.toLowerCase(Locale.ROOT), Math.max(1, costSec.getInt(key))));
                     }
                 }
+                List<CostEntry> itemCosts = new ArrayList<>();
+                ConfigurationSection itemCostSec = sec.getConfigurationSection("cost-items");
+                if (itemCostSec != null) {
+                    for (String key : itemCostSec.getKeys(false)) {
+                        itemCosts.add(new CostEntry(key.toLowerCase(Locale.ROOT), Math.max(1, itemCostSec.getInt(key))));
+                    }
+                }
                 List<String> lore = new ArrayList<>(sec.getStringList("lore"));
                 recipes.put(id.toLowerCase(Locale.ROOT), new RecipeDef(
                         id.toLowerCase(Locale.ROOT),
@@ -116,7 +128,9 @@ public final class CraftingManager {
                         material == null ? Material.PAPER : material,
                         sec.getString("color", "&f"),
                         lore, attributes, costs,
-                        Math.max(0.0D, sec.getDouble("fee", 0.0D))));
+                        Math.max(0.0D, sec.getDouble("fee", 0.0D)),
+                        sec.getString("output-item"),
+                        List.copyOf(itemCosts)));
             }
         }
         plugin.getLogger().info("已加载制造系统：" + materials.size() + " 底材 / " + recipes.size() + " 配方。");
@@ -183,6 +197,44 @@ public final class CraftingManager {
         return count;
     }
 
+    /** v4.2：按「固定属性物品 id」统计背包数量（PDC 判定，不认名字）。 */
+    public int countItem(Player player, String itemId) {
+        int count = 0;
+        for (ItemStack item : player.getInventory().getStorageContents()) {
+            if (item != null && itemId.equalsIgnoreCase(plugin.items().idOf(item))) {
+                count += item.getAmount();
+            }
+        }
+        return count;
+    }
+
+    private boolean takeItems(Player player, List<CostEntry> costs) {
+        for (CostEntry entry : costs) {
+            if (countItem(player, entry.materialId()) < entry.amount()) {
+                return false;
+            }
+        }
+        for (CostEntry entry : costs) {
+            int remaining = entry.amount();
+            ItemStack[] storage = player.getInventory().getStorageContents();
+            for (int i = 0; i < storage.length && remaining > 0; i++) {
+                ItemStack item = storage[i];
+                if (item == null || !entry.materialId().equalsIgnoreCase(plugin.items().idOf(item))) {
+                    continue;
+                }
+                int take = Math.min(remaining, item.getAmount());
+                remaining -= take;
+                if (take >= item.getAmount()) {
+                    player.getInventory().setItem(i, null);
+                } else {
+                    item.setAmount(item.getAmount() - take);
+                }
+            }
+        }
+        player.updateInventory();
+        return true;
+    }
+
     private boolean takeMaterials(Player player, List<CostEntry> costs) {
         // 先校验后扣除（两阶段，防半扣）
         for (CostEntry entry : costs) {
@@ -219,6 +271,13 @@ public final class CraftingManager {
         for (CostEntry entry : recipe.costs()) {
             materialsWorth += entry.amount() * 25.0D;
         }
+        if (plugin.items() != null) {
+            for (CostEntry entry : recipe.itemCosts()) {
+                double unit = plugin.items().definition(entry.materialId())
+                        .map(io.sakurammo.item.ItemDefinition::value).orElse(25.0D);
+                materialsWorth += entry.amount() * Math.max(25.0D, unit * 0.25D);
+            }
+        }
         return recipe.fee() + materialsWorth;
     }
 
@@ -226,6 +285,11 @@ public final class CraftingManager {
     public boolean canCraft(Player player, RecipeDef recipe) {
         for (CostEntry entry : recipe.costs()) {
             if (countMaterial(player, entry.materialId()) < entry.amount()) {
+                return false;
+            }
+        }
+        for (CostEntry entry : recipe.itemCosts()) {
+            if (countItem(player, entry.materialId()) < entry.amount()) {
                 return false;
             }
         }
@@ -238,6 +302,17 @@ public final class CraftingManager {
      */
     public ItemStack craft(Player player, RecipeDef recipe) {
         if (!takeMaterials(player, recipe.costs())) {
+            Msg.send(player, "craft.no-materials");
+            return null;
+        }
+        if (!takeItems(player, recipe.itemCosts())) {
+            // 底材已扣但物品材料不足：退回底材，避免半扣
+            for (CostEntry entry : recipe.costs()) {
+                ItemStack refund = createMaterial(entry.materialId(), entry.amount());
+                if (refund != null) {
+                    player.getInventory().addItem(refund);
+                }
+            }
             Msg.send(player, "craft.no-materials");
             return null;
         }
@@ -262,6 +337,21 @@ public final class CraftingManager {
 
     /** 成品：品质色名称 + lore + 原版 attribute modifiers + PDC（crafted 标记与价值）。 */
     public ItemStack createProduct(RecipeDef recipe) {
+        if (recipe.outputItem() != null && plugin.items() != null) {
+            ItemStack product = plugin.items().create(recipe.outputItem(), 1);
+            if (product != null) {
+                ItemMeta productMeta = product.getItemMeta();
+                if (productMeta != null) {
+                    productMeta.getPersistentDataContainer().set(CRAFTED_KEY,
+                            PersistentDataType.STRING, recipe.id());
+                    productMeta.getPersistentDataContainer().set(CRAFTED_VALUE,
+                            PersistentDataType.DOUBLE, recipeValue(recipe));
+                    product.setItemMeta(productMeta);
+                }
+                return product;
+            }
+            plugin.getLogger().warning("配方 " + recipe.id() + " 的产物物品 id 不存在：" + recipe.outputItem());
+        }
         ItemStack item = new ItemStack(recipe.item());
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
@@ -339,6 +429,11 @@ public final class CraftingManager {
             Double value = pdc.get(CRAFTED_VALUE, PersistentDataType.DOUBLE);
             if (value != null) {
                 return Math.max(0.0D, value * plugin.economy().sellRefundRate());
+            }
+            // v4.2 固定属性物品：有 value 才可卖（材料 value=0 → 拒绝，防刷金）
+            if (plugin.items() != null && plugin.items().isCustom(item)) {
+                double itemValue = plugin.items().valueOf(item);
+                return itemValue <= 0.0D ? 0.0D : itemValue * plugin.economy().sellRefundRate();
             }
         }
         return basePrice(item.getType());

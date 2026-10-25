@@ -1,0 +1,338 @@
+# ============================================================
+# 装备库（v4.2）—— 固定属性装备（不是随机词条，随机词条归 RPGLoot）
+# attributes: 原版属性（attack_damage/armor/armor_toughness/max_health/
+#             movement_speed/attack_speed/knockback_resistance）
+# effects: type=lightning|poison|lifesteal|slow|burn，chance/value/cooldown
+# ============================================================
+
+items:
+  miner_blade:
+    display: 矿工短剑
+    material: IRON_SWORD
+    rarity: RARE
+    tier: 1
+    value: 130
+    attributes:
+      attack_damage: 7
+      attack_speed: -1.8
+    lore:
+      - "&7矿洞里捡来的短剑，磨得还算锋利。"
+
+  forest_bow:
+    display: 森林长弓
+    material: BOW
+    rarity: RARE
+    tier: 1
+    value: 140
+    attributes:
+      attack_damage: 6
+    lore:
+      - "&7以古树枝干制成，拉满时几乎无声。"
+
+  blackiron_greatsword:
+    display: 黑铁巨剑
+    material: NETHERITE_SWORD
+    rarity: EPIC
+    tier: 2
+    value: 360
+    attributes:
+      attack_damage: 12
+      attack_speed: -2.4
+    lore:
+      - "&7王庭铁匠的制式武器，一击能把人砸跪下。"
+
+  molten_staff:
+    display: 熔火法杖
+    material: BLAZE_ROD
+    rarity: EPIC
+    tier: 2
+    value: 380
+    attributes:
+      attack_damage: 8
+    effects:
+      - {type: burn, chance: 0.25, value: 3, cooldown: 4.0}
+    lore:
+      - "&7杖头嵌着一枚不灭的熔火碎片。"
+
+  dragon_verdict:
+    display: 巨龙裁决
+    material: NETHERITE_SWORD
+    rarity: MYTHIC
+    tier: 3
+    value: 900
+    attributes:
+      attack_damage: 15
+      attack_speed: -2.0
+    effects:
+      - {type: lightning, chance: 0.15, value: 12, cooldown: 6.0}
+    lore:
+      - "&7传说中斩落过巨龙意志的剑。"
+
+  miner_helmet:
+    display: 矿工头盔
+    material: CHAINMAIL_HELMET
+    rarity: UNCOMMON
+    tier: 1
+    set: miner
+    value: 110
+    attributes:
+      armor: 2
+      max_health: 1
+    lore:
+      - "&7新手矿洞里最常见的护具，胜在轻便。"
+
+  miner_chestplate:
+    display: 矿工胸甲
+    material: CHAINMAIL_CHESTPLATE
+    rarity: UNCOMMON
+    tier: 1
+    set: miner
+    value: 110
+    attributes:
+      armor: 5
+      max_health: 2
+    lore:
+      - "&7新手矿洞里最常见的护具，胜在轻便。"
+
+  miner_leggings:
+    display: 矿工护腿
+    material: CHAINMAIL_LEGGINGS
+    rarity: UNCOMMON
+    tier: 1
+    set: miner
+    value: 110
+    attributes:
+      armor: 4
+      max_health: 2
+    lore:
+      - "&7新手矿洞里最常见的护具，胜在轻便。"
+
+  miner_boots:
+    display: 矿工靴子
+    material: CHAINMAIL_BOOTS
+    rarity: UNCOMMON
+    tier: 1
+    set: miner
+    value: 110
+    attributes:
+      armor: 2
+      max_health: 1
+    lore:
+      - "&7新手矿洞里最常见的护具，胜在轻便。"
+
+  forest_helmet:
+    display: 森林游侠头盔
+    material: LEATHER_HELMET
+    rarity: RARE
+    tier: 1
+    set: forest
+    value: 140
+    attributes:
+      armor: 2
+      movement_speed: 0.01
+    lore:
+      - "&7树皮与藤蔓编织，穿行林中几乎无声。"
+
+  forest_chestplate:
+    display: 森林游侠胸甲
+    material: LEATHER_CHESTPLATE
+    rarity: RARE
+    tier: 1
+    set: forest
+    value: 140
+    attributes:
+      armor: 5
+      movement_speed: 0.01
+    lore:
+      - "&7树皮与藤蔓编织，穿行林中几乎无声。"
+
+  forest_leggings:
+    display: 森林游侠护腿
+    material: LEATHER_LEGGINGS
+    rarity: RARE
+    tier: 1
+    set: forest
+    value: 140
+    attributes:
+      armor: 4
+      movement_speed: 0.01
+    lore:
+      - "&7树皮与藤蔓编织，穿行林中几乎无声。"
+
+  forest_boots:
+    display: 森林游侠靴子
+    material: LEATHER_BOOTS
+    rarity: RARE
+    tier: 1
+    set: forest
+    value: 140
+    attributes:
+      armor: 2
+      movement_speed: 0.02
+    lore:
+      - "&7树皮与藤蔓编织，穿行林中几乎无声。"
+
+  blackiron_helmet:
+    display: 黑铁头盔
+    material: IRON_HELMET
+    rarity: EPIC
+    tier: 2
+    set: blackiron
+    value: 320
+    attributes:
+      armor: 3
+      armor_toughness: 1
+    lore:
+      - "&7王庭锻造的板甲，重，但挡得住。"
+
+  blackiron_chestplate:
+    display: 黑铁胸甲
+    material: IRON_CHESTPLATE
+    rarity: EPIC
+    tier: 2
+    set: blackiron
+    value: 320
+    attributes:
+      armor: 8
+      armor_toughness: 3
+      max_health: 4
+    lore:
+      - "&7王庭锻造的板甲，重，但挡得住。"
+
+  blackiron_leggings:
+    display: 黑铁护腿
+    material: IRON_LEGGINGS
+    rarity: EPIC
+    tier: 2
+    set: blackiron
+    value: 320
+    attributes:
+      armor: 6
+      armor_toughness: 2
+      max_health: 2
+    lore:
+      - "&7王庭锻造的板甲，重，但挡得住。"
+
+  blackiron_boots:
+    display: 黑铁靴子
+    material: IRON_BOOTS
+    rarity: EPIC
+    tier: 2
+    set: blackiron
+    value: 320
+    attributes:
+      armor: 3
+      armor_toughness: 1
+    lore:
+      - "&7王庭锻造的板甲，重，但挡得住。"
+
+  molten_helmet:
+    display: 熔火头盔
+    material: GOLDEN_HELMET
+    rarity: EPIC
+    tier: 2
+    set: molten
+    value: 340
+    attributes:
+      armor: 3
+      attack_damage: 1
+    lore:
+      - "&7熔火之心的余烬锻成，靠近能感到热浪。"
+
+  molten_chestplate:
+    display: 熔火胸甲
+    material: GOLDEN_CHESTPLATE
+    rarity: EPIC
+    tier: 2
+    set: molten
+    value: 340
+    attributes:
+      armor: 7
+      attack_damage: 2
+      max_health: 2
+    lore:
+      - "&7熔火之心的余烬锻成，靠近能感到热浪。"
+
+  molten_leggings:
+    display: 熔火护腿
+    material: GOLDEN_LEGGINGS
+    rarity: EPIC
+    tier: 2
+    set: molten
+    value: 340
+    attributes:
+      armor: 5
+      attack_damage: 1
+      max_health: 2
+    lore:
+      - "&7熔火之心的余烬锻成，靠近能感到热浪。"
+
+  molten_boots:
+    display: 熔火靴子
+    material: GOLDEN_BOOTS
+    rarity: EPIC
+    tier: 2
+    set: molten
+    value: 340
+    attributes:
+      armor: 3
+      attack_damage: 1
+    lore:
+      - "&7熔火之心的余烬锻成，靠近能感到热浪。"
+
+  dragon_helmet:
+    display: 巨龙头盔
+    material: NETHERITE_HELMET
+    rarity: MYTHIC
+    tier: 3
+    set: dragon
+    value: 780
+    attributes:
+      armor: 4
+      armor_toughness: 2
+      max_health: 2
+    lore:
+      - "&7龙鳞拼接而成，据说能承受龙息。"
+
+  dragon_chestplate:
+    display: 巨龙胸甲
+    material: NETHERITE_CHESTPLATE
+    rarity: MYTHIC
+    tier: 3
+    set: dragon
+    value: 780
+    attributes:
+      armor: 9
+      armor_toughness: 4
+      max_health: 6
+      knockback_resistance: 0.05
+    lore:
+      - "&7龙鳞拼接而成，据说能承受龙息。"
+
+  dragon_leggings:
+    display: 巨龙护腿
+    material: NETHERITE_LEGGINGS
+    rarity: MYTHIC
+    tier: 3
+    set: dragon
+    value: 780
+    attributes:
+      armor: 7
+      armor_toughness: 3
+      max_health: 4
+    lore:
+      - "&7龙鳞拼接而成，据说能承受龙息。"
+
+  dragon_boots:
+    display: 巨龙靴子
+    material: NETHERITE_BOOTS
+    rarity: MYTHIC
+    tier: 3
+    set: dragon
+    value: 780
+    attributes:
+      armor: 4
+      armor_toughness: 2
+      max_health: 2
+    lore:
+      - "&7龙鳞拼接而成，据说能承受龙息。"
