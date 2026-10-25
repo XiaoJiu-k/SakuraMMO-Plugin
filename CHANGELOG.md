@@ -1,5 +1,11 @@
 # SakuraMMO 插件 · 版本变更记录
 
+## v4.1.1（2026-10-25）—— 无限耐久
+
+- **武器装备无限耐久**：取消 `PlayerItemDamageEvent`，武器/盔甲/工具/鞘翅一次性全覆盖（副本掉落、RPGLoot 词条、制造、升格产物都不再磨损）
+- `items.infinite-durability`（默认开）、`items.repair-on-join`（默认开，登录把历史磨损修满）
+- 新增 `DurabilityListener`
+
 ## v4.1.0（2026-10-25）—— 技能扩充
 
 > 本版本曾在 11:40 按用户指令回退（revert 95d22b8，记录见 S-033），同日 12:20 重新实施。

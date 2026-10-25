@@ -100,6 +100,8 @@ public final class ConfigManager {
                 Math.max(10, cfg.getInt("raid.max-members", d.raidMaxMembers())),
                 Math.max(0, cfg.getInt("raid.clear-tokens", d.raidClearTokens())),
                 Math.max(0.0D, cfg.getDouble("admin.giveall-money", d.adminGiveallMoney())),
+                cfg.getBoolean("items.infinite-durability", d.infiniteDurability()),
+                cfg.getBoolean("items.repair-on-join", d.repairOnJoin()),
                 cfg.getBoolean("debug", d.debug())
         );
     }

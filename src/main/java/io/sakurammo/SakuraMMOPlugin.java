@@ -113,6 +113,7 @@ public final class SakuraMMOPlugin extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(playerListener, this);
         Bukkit.getPluginManager().registerEvents(new CombatListener(this), this);
         Bukkit.getPluginManager().registerEvents(new DungeonListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new io.sakurammo.listener.DurabilityListener(this), this);
         menus.register();
         parties.start();
 
