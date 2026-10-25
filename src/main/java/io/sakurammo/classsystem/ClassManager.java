@@ -212,6 +212,7 @@ public final class ClassManager {
     /** 立即应用一次（失败不重试）。 */
     public void applyModifiers(Player player) {
         tryApply(player, true);
+        plugin.passives().applyPassives(player);
     }
 
     /** 登录补发：先补技能权限（不依赖 AuraSkills），再每 10 tick 重试修饰符，最多 20 次（10 秒）。 */

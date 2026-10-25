@@ -1,5 +1,15 @@
 # SakuraMMO 插件 · 版本变更记录
 
+## v4.1.0（2026-10-25）—— 技能扩充
+
+- **技能池 35 → 92**：7 职业 × 13~14（4 基础 + 4~5 战术 + 1 终极 + 4 被动 + 兼容旧触发技）
+- `skills.yml` 新字段 `unlock-level`（1→60 解锁曲线，实时判定）与被动定义（passive-stat/passive-special）
+- 施法/绑定校验新增**等级解锁**（未达等级提示「需要等级 Lv.X」）
+- **PassiveManager**：被动 AuraSkills modifier 自动挂载（登录/升级/切职业）；事件型被动（荆棘反弹/低血怒气翻倍）
+- 升级行内 ActionBar 提示「解锁新技能」；技能库 GUI 按等级排序、未解锁灰显
+- MythicMobs 新增 21 个主动技能（damage/stun/command-effect/throw/lightning）
+- 校验器跳过被动（被动无 MM 配置，消除启动 WARN）
+
 ## v4.0.7（2026-10-25）
 
 - 击杀金币仅限副本世界内发放（副本 Boss 额外奖励不变）；副本外击杀只给经验与周常进度

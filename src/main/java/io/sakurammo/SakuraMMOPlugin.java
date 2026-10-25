@@ -20,6 +20,7 @@ import io.sakurammo.party.PartyManager;
 import io.sakurammo.player.PlayerDataManager;
 import io.sakurammo.resource.ResourceService;
 import io.sakurammo.skill.SkillService;
+import io.sakurammo.talent.PassiveManager;
 import io.sakurammo.talent.TalentManager;
 import io.sakurammo.weekly.UpgradeManager;
 import io.sakurammo.weekly.WeeklyManager;
@@ -52,6 +53,7 @@ public final class SakuraMMOPlugin extends JavaPlugin {
     private AuditLogger audit;
     private WeeklyManager weeklies;
     private UpgradeManager upgrades;
+    private PassiveManager passives;
 
     private ClassManager classManager;
     private ResourceService resources;
@@ -101,6 +103,8 @@ public final class SakuraMMOPlugin extends JavaPlugin {
         // 阶段四：周常 / 追赶
         weeklies = new WeeklyManager(this);
         upgrades = new UpgradeManager(this);
+        // v4.1：被动技能
+        passives = new PassiveManager(this);
         instances.startupCleanup(); // 兜底：删除宕机残留的 instance_* 世界目录
         parties.recoverFromCrash(); // 上次非正常结束的副本队伍 → IDLE（玩家背包在其上线时恢复）
 
@@ -250,6 +254,10 @@ public final class SakuraMMOPlugin extends JavaPlugin {
 
     public UpgradeManager upgrades() {
         return upgrades;
+    }
+
+    public PassiveManager passives() {
+        return passives;
     }
 
     public ClassManager classManager() {

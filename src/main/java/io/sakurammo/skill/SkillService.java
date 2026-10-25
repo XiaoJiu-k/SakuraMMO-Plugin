@@ -88,6 +88,11 @@ public final class SkillService {
         if (!definition.trigger().bindable()) {
             return Result.fail(Msg.raw("skill.passive-not-bindable", "skill", definition.displayName()));
         }
+        if (!definition.unlockedAt(player.getLevel())) {
+            return Result.fail(Msg.raw("skill.locked-by-level",
+                    "skill", definition.displayName(),
+                    "level", String.valueOf(definition.unlockLevel())));
+        }
         profile.skillBind(key, definition.id());
         plugin.playerData().save(profile);
         return Result.ok(Msg.raw("skill.bind-success",
@@ -149,9 +154,14 @@ public final class SkillService {
                     + "，玩家是 " + profile.classId());
         }
 
-        // 2. 已解锁
+        // 2. 已解锁（权限 + 等级）
         if (definition.hasPermissionGate() && !player.hasPermission(definition.permission())) {
             return fail(player, definition, "未解锁：缺少权限 " + definition.permission());
+        }
+        if (!definition.unlockedAt(player.getLevel())) {
+            return Result.fail(Msg.raw("skill.locked-by-level",
+                    "skill", definition.displayName(),
+                    "level", String.valueOf(definition.unlockLevel())));
         }
 
         // 3. 资源足够（天赋「消耗降低」在这里生效）
@@ -223,6 +233,9 @@ public final class SkillService {
             return;
         }
         for (SkillDefinition definition : plugin.config().skills().values()) {
+            if (definition.isPassive()) {
+                continue; // 被动无 MythicMobs 配置，走插件内效果
+            }
             if (!plugin.mythic().skillExists(definition.mythicSkill())) {
                 plugin.getLogger().warning("MythicMobs 里找不到技能 " + definition.mythicSkill()
                         + "（skills.yml 的 " + definition.id() + "），该技能施放时会失败。");

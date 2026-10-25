@@ -29,6 +29,23 @@ public final class CombatListener implements Listener {
     public void onPlayerDamaged(EntityDamageEvent event) {
         if (event.getEntity() instanceof Player player) {
             plugin.resources().onDamageTaken(player);
+            // v4.1 被动「荆棘之甲」：受伤反弹给攻击者（近战/弹射物）
+            if (event instanceof EntityDamageByEntityEvent byEntity
+                    && event.getCause() == EntityDamageEvent.DamageCause.ENTITY_ATTACK) {
+                Player attacker = resolveAttacker(byEntity);
+                if (attacker != null && attacker != player) {
+                    double thorns = plugin.passives().specialValue(player, "thorns");
+                    if (thorns > 0.0D) {
+                        double reflect = Math.max(0.5D, event.getFinalDamage() * thorns);
+                        applying.add(player.getUniqueId());
+                        try {
+                            attacker.damage(reflect, player);
+                        } finally {
+                            applying.remove(player.getUniqueId());
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -184,6 +201,22 @@ public final class CombatListener implements Listener {
             return; // 不给玩家击杀发钱
         }
         plugin.economy().deposit(killer, Math.round(money * 100.0D) / 100.0D, "economy.kill-gain");
+    }
+
+    /** v4.1 被动「浴血奋战」：生命低于 35% 时，ATTACK 来源的怒气获取翻倍。 */
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onResourceGain(io.sakurammo.event.ResourceGainEvent event) {
+        if (event.cause() != io.sakurammo.event.ResourceGainEvent.Cause.ATTACK) {
+            return;
+        }
+        Player player = event.player();
+        double thornsSurge = plugin.passives().specialValue(player, "rage-surge");
+        if (thornsSurge <= 0.0D) {
+            return;
+        }
+        if (player.getHealth() / Math.max(1.0D, player.getMaxHealth()) <= 0.35D) {
+            event.amount(event.amount() * (1.0D + thornsSurge));
+        }
     }
 
     private static Player resolveAttacker(EntityDamageByEntityEvent event) {
