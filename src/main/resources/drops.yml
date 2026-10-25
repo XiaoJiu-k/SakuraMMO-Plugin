@@ -1,0 +1,85 @@
+# ============================================================
+# Boss 掉落表（v4.2）—— 由 SakuraMMO 自己 roll（不经 MythicMobs DropTable）
+# materials：必掉，[最小, 最大]
+# items：概率掉落的固定属性物品（id 见 /sm item list）
+# guarantee-final：该副本最后一个 Boss 若一件装备都没掉，强制补一件（防脸黑）
+# 改完 /sm reload 生效
+# ============================================================
+
+dungeons:
+  # ---- Lv.10 新手矿洞 ----
+  novice_mine:
+    materials:
+      rough_crystal: [2, 4]
+      star_dust: [0, 2]
+    items:
+      - { id: miner_blade, chance: 0.12 }
+      - { id: miner_helmet, chance: 0.10 }
+      - { id: miner_chestplate, chance: 0.08 }
+      - { id: miner_leggings, chance: 0.10 }
+      - { id: miner_boots, chance: 0.10 }
+    guarantee-final: true
+
+  # ---- Lv.25 幽暗森林 ----
+  dark_forest:
+    materials:
+      forest_resin: [2, 4]
+      shadow_silk: [1, 2]
+    items:
+      - { id: forest_bow, chance: 0.10 }
+      - { id: forest_helmet, chance: 0.09 }
+      - { id: forest_chestplate, chance: 0.07 }
+      - { id: forest_leggings, chance: 0.09 }
+      - { id: forest_boots, chance: 0.09 }
+    guarantee-final: true
+
+  # ---- Lv.40 黑铁王庭（原有副本，接入新掉落） ----
+  blackiron:
+    materials:
+      blackiron_ingot: [2, 3]
+      mana_crystal: [0, 2]
+    items:
+      - { id: blackiron_greatsword, chance: 0.08 }
+      - { id: blackiron_helmet, chance: 0.07 }
+      - { id: blackiron_chestplate, chance: 0.06 }
+      - { id: blackiron_leggings, chance: 0.07 }
+      - { id: blackiron_boots, chance: 0.07 }
+    guarantee-final: true
+
+  # ---- Lv.55 熔火之心 ----
+  molten_core:
+    materials:
+      molten_shard: [2, 4]
+      frost_crystal: [1, 3]
+      mithril_fleck: [0, 1]
+    items:
+      - { id: molten_staff, chance: 0.08 }
+      - { id: molten_helmet, chance: 0.07 }
+      - { id: molten_chestplate, chance: 0.06 }
+      - { id: molten_leggings, chance: 0.07 }
+      - { id: molten_boots, chance: 0.07 }
+    guarantee-final: true
+
+  # ---- Lv.60 团本 巨龙神殿 ----
+  raid_dragon_temple:
+    materials:
+      dragon_scale: [2, 4]
+      ancient_rune: [1, 2]
+      dragon_soul: [0, 1]
+    items:
+      - { id: dragon_verdict, chance: 0.10 }
+      - { id: dragon_helmet, chance: 0.08 }
+      - { id: dragon_chestplate, chance: 0.07 }
+      - { id: dragon_leggings, chance: 0.08 }
+      - { id: dragon_boots, chance: 0.08 }
+    guarantee-final: true
+
+  # ---- 团本：黑铁王庭（原有） ----
+  raid_blackiron:
+    materials:
+      blackiron_ingot: [3, 5]
+      dark_core: [0, 2]
+    items:
+      - { id: blackiron_greatsword, chance: 0.10 }
+      - { id: blackiron_chestplate, chance: 0.08 }
+    guarantee-final: true

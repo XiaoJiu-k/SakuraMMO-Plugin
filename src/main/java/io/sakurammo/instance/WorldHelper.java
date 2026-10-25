@@ -18,6 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Comparator;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.stream.Stream;
 
@@ -227,13 +228,40 @@ public final class WorldHelper {
     /**
      * 读取 dungeons/&lt;id&gt;.yml。模板是自动生成时（baseY &gt;= 0），用真实坐标重写配置。
      */
+    /**
+     * 按模板实测坐标重写副本配置。
+     * <p>
+     * v4.2 修正：早期版本把 display-name / Boss 名 / 奖励物品写死成黑铁王庭，
+     * 导致新副本（新手矿洞等）模板生成后被改成黑铁王庭的 Boss。
+     * 现在只重写**坐标**，其余字段（副本名、模式、等级、人数、Boss mob、奖励）全部保留原配置。
+     */
     public void rewriteDungeonConfig(String dungeonId, String templateWorld, int baseY) {
         File file = new File(plugin.getDataFolder(), "dungeons/" + dungeonId + ".yml");
+        YamlConfiguration existing = file.isFile()
+                ? YamlConfiguration.loadConfiguration(file) : new YamlConfiguration();
+
+        String display = existing.getString("display-name", dungeonId);
+        String mode = existing.getString("mode", "dungeon");
+        int minMembers = Math.max(1, existing.getInt("min-members", 1));
+        int maxMembers = Math.max(1, existing.getInt("max-members", 5));
+        int minLevel = Math.max(1, existing.getInt("min-level", 1));
+        List<String> rewardItems = existing.getStringList("reward.items");
+        if (rewardItems.isEmpty()) {
+            rewardItems = List.of("GOLDEN_APPLE:2", "EXPERIENCE_BOTTLE:4");
+        }
+        String[] mobs = {
+                existing.getString("bosses.1.mob", "IronJawGatekeeper"),
+                existing.getString("bosses.2.mob", "AquimixWarden"),
+                existing.getString("bosses.3.mob", "ForgemasterVhal")
+        };
+
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.set("id", dungeonId);
-        yaml.set("display-name", "黑铁王庭");
-        yaml.set("min-members", 1);
-        yaml.set("max-members", 5);
+        yaml.set("display-name", display);
+        yaml.set("mode", mode);
+        yaml.set("min-level", minLevel);
+        yaml.set("min-members", minMembers);
+        yaml.set("max-members", maxMembers);
         yaml.set("template-world", templateWorld);
         yaml.set("spawn.x", 0.5);
         yaml.set("spawn.y", baseY + 1);
@@ -248,26 +276,26 @@ public final class WorldHelper {
         yaml.set("exit.z", 0.5);
         yaml.set("exit.yaw", 0.0);
         yaml.set("exit.pitch", 0.0);
-        yaml.set("bosses.1.mob", "IronJawGatekeeper");
+        yaml.set("bosses.1.mob", mobs[0]);
         yaml.set("bosses.1.x", 0.5);
         yaml.set("bosses.1.y", baseY + 1);
         yaml.set("bosses.1.z", BOSS1_Z + 0.5);
         yaml.set("bosses.1.door.min", "-2," + (baseY + 1) + "," + DOOR_Z);
         yaml.set("bosses.1.door.max", "2," + (baseY + 3) + "," + DOOR_Z);
-        yaml.set("bosses.2.mob", "AquimixWarden");
+        yaml.set("bosses.2.mob", mobs[1]);
         yaml.set("bosses.2.x", 0.5);
         yaml.set("bosses.2.y", baseY + 1);
         yaml.set("bosses.2.z", BOSS2_Z + 0.5);
         yaml.set("bosses.2.valves", java.util.List.of(
                 -VALVE_X + "," + (baseY + 1) + "," + (DOOR_Z - 1),
                 VALVE_X + "," + (baseY + 1) + "," + (DOOR_Z - 1)));
-        yaml.set("bosses.3.mob", "ForgemasterVhal");
+        yaml.set("bosses.3.mob", mobs[2]);
         yaml.set("bosses.3.x", 0.5);
         yaml.set("bosses.3.y", baseY + 1);
         yaml.set("bosses.3.z", BOSS3_Z + 0.5);
         yaml.set("bosses.3.phases", java.util.List.of(0.7, 0.35));
         yaml.set("reward.chest", "0," + (baseY + 1) + "," + CHEST_Z);
-        yaml.set("reward.items", java.util.List.of("IRON_SWORD:1", "GOLDEN_APPLE:2", "EXPERIENCE_BOTTLE:5"));
+        yaml.set("reward.items", rewardItems);
         try {
             file.getParentFile().mkdirs();
             yaml.save(file);

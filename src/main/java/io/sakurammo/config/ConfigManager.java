@@ -33,7 +33,8 @@ public final class ConfigManager {
             List.of("materials.yml", "equipment.yml", "sets.yml");
 
     /** 内置副本 id（首次启动释放到 dungeons/，模板引导生成后会按实测坐标重写）。 */
-    public static final List<String> DEFAULT_DUNGEON_IDS = List.of("blackiron");
+    public static final List<String> DEFAULT_DUNGEON_IDS =
+            List.of("blackiron", "novice_mine", "dark_forest", "molten_core", "raid_dragon_temple");
 
     private final JavaPlugin plugin;
 
@@ -62,6 +63,7 @@ public final class ConfigManager {
         saveIfAbsent("recipes.yml");
         saveIfAbsent("weeklies.yml");
         saveIfAbsent("upgrade.yml");
+        saveIfAbsent("drops.yml");
         for (String file : DEFAULT_ITEM_FILES) {
             saveIfAbsent("items/" + file);
         }

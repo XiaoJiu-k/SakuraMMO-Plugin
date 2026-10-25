@@ -32,6 +32,8 @@ public final class DungeonDefinition {
     public final String mode;
     public final int minMembers;
     public final int maxMembers;
+    /** 进入等级要求（玩家原版等级）；1 = 不限。 */
+    public final int minLevel;
     public final String templateWorld;
     public final double[] spawn;   // x,y,z,yaw,pitch（实例世界内）
     public final String exitWorld;
@@ -48,7 +50,7 @@ public final class DungeonDefinition {
     }
 
     private DungeonDefinition(String id, String displayName, String mode, int minMembers, int maxMembers,
-                              String templateWorld, double[] spawn, String exitWorld, double[] exit,
+                              int minLevel, String templateWorld, double[] spawn, String exitWorld, double[] exit,
                               BossDef boss1, BossDef boss2, BossDef boss3,
                               int[] chest, List<String> rewardItems) {
         this.id = id;
@@ -56,6 +58,7 @@ public final class DungeonDefinition {
         this.mode = mode;
         this.minMembers = minMembers;
         this.maxMembers = maxMembers;
+        this.minLevel = minLevel;
         this.templateWorld = templateWorld;
         this.spawn = spawn;
         this.exitWorld = exitWorld;
@@ -120,6 +123,7 @@ public final class DungeonDefinition {
                     "raid".equalsIgnoreCase(yaml.getString("mode", "dungeon")) ? "raid" : "dungeon",
                     Math.max(1, yaml.getInt("min-members", 2)),
                     Math.max(1, yaml.getInt("max-members", 5)),
+                    Math.max(1, yaml.getInt("min-level", 1)),
                     yaml.getString("template-world", "template_" + dungeonId.toLowerCase(Locale.ROOT)),
                     spawn, exitSec.getString("world", "world"), exit,
                     b1, b2, b3, chest, items);

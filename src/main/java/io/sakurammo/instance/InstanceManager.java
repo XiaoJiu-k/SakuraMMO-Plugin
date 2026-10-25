@@ -93,6 +93,12 @@ public final class InstanceManager {
             Msg.send(leader, "dungeon.unknown", "id", dungeonId);
             return;
         }
+        if (def.minLevel > 1 && leader.getLevel() < def.minLevel) {
+            Msg.send(leader, "dungeon.level-too-low",
+                    "level", String.valueOf(def.minLevel),
+                    "current", String.valueOf(leader.getLevel()));
+            return;
+        }
         Party party = plugin.parties().partyOf(leader.getUniqueId());
         if (party == null) {
             // 单人开本：min-members=1 的副本自动创建一人队伍（队内语义复用，run-id 跟随队伍）
@@ -489,7 +495,7 @@ public final class InstanceManager {
         // 团本模式（阶段四）：Boss 同场无门/无敌链，全灭通关（在线成员代币 + 周常）
         if (instance.raidMode) {
             broadcast(party, "raid.boss-dead", "boss", "Boss" + index);
-            rewardBoss(party, entity.getWorld(), entity.getLocation(), index);
+            rewardBoss(party, entity.getWorld(), entity.getLocation(), index, instance.dungeonId);
             if (instance.bosses.isEmpty()) {
                 instance.phase = 4;
                 placeRewardChest(instance, def, entity.getWorld());
@@ -524,7 +530,7 @@ public final class InstanceManager {
                 openDoor(entity.getWorld(), def);
                 // Boss2 的无敌只由双阀解除（模块 D 机制）；这里只开门
                 broadcast(party, "dungeon.boss1-dead");
-                rewardBoss(party, entity.getWorld(), entity.getLocation(), 1);
+                rewardBoss(party, entity.getWorld(), entity.getLocation(), 1, instance.dungeonId);
             }
             case 2 -> {
                 instance.phase = 3;
@@ -533,7 +539,7 @@ public final class InstanceManager {
                     boss3.setInvulnerable(false);
                 }
                 broadcast(party, "dungeon.boss2-dead");
-                rewardBoss(party, entity.getWorld(), entity.getLocation(), 2);
+                rewardBoss(party, entity.getWorld(), entity.getLocation(), 2, instance.dungeonId);
             }
             case 3 -> {
                 instance.phase = 4;
@@ -546,7 +552,7 @@ public final class InstanceManager {
                 broadcast(party, "dungeon.cleared", "dungeon", def.displayName);
                 Bukkit.broadcastMessage(Msg.prefix() + Msg.raw("dungeon.broadcast-cleared",
                         "dungeon", def.displayName));
-                rewardBoss(party, entity.getWorld(), entity.getLocation(), 3);
+                rewardBoss(party, entity.getWorld(), entity.getLocation(), 3, instance.dungeonId);
                 for (UUID uuid : party.members()) {
                     Player online = Bukkit.getPlayer(uuid);
                     if (online != null && online.isOnline()) {
@@ -564,6 +570,29 @@ public final class InstanceManager {
      * 底材直接掉在 Boss 位置；经验给天赋系统，金币进经济。
      */
     private void rewardBoss(Party party, World world, Location at, int bossIndex) {
+        rewardBoss(party, world, at, bossIndex, null);
+    }
+
+    private void rewardBoss(Party party, World world, Location at, int bossIndex, String dungeonId) {
+        if (dungeonId != null && plugin.bossDrops().has(dungeonId)) {
+            int bossCount = bossCount(dungeonId);
+            plugin.bossDrops().roll(dungeonId, bossIndex, bossCount, world, at);
+        } else {
+            legacyMaterialDrop(world, at, bossIndex);
+        }
+        awardBossProgress(party, bossIndex);
+    }
+
+    /** 副本 Boss 总数（掉落表判断「最后一个 Boss 保底」用）。 */
+    private int bossCount(String dungeonId) {
+        var def = DungeonDefinition.load(plugin, dungeonId);
+        if (def == null) {
+            return 3;
+        }
+        return def.boss2 == null ? 1 : def.boss3 == null ? 2 : 3;
+    }
+
+    private void legacyMaterialDrop(World world, Location at, int bossIndex) {
         String materialId = switch (bossIndex) {
             case 1 -> "blackiron_ingot";
             case 2 -> "mana_crystal";
@@ -580,6 +609,9 @@ public final class InstanceManager {
                 world.dropItemNaturally(at, crystal);
             }
         }
+    }
+
+    private void awardBossProgress(Party party, int bossIndex) {
         if (party == null) {
             return;
         }

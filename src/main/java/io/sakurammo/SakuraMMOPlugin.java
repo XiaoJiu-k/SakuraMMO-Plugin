@@ -65,6 +65,7 @@ public final class SakuraMMOPlugin extends JavaPlugin {
     private InstanceManager instances;
     private LootManager loot;
     private io.sakurammo.item.ItemManager items;
+    private io.sakurammo.loot.BossDropService bossDrops;
 
     private Object placeholderHandle;
     private boolean placeholderRegistered;
@@ -109,6 +110,7 @@ public final class SakuraMMOPlugin extends JavaPlugin {
         // v4.2：固定属性物品引擎（items/*.yml）
         items = new io.sakurammo.item.ItemManager(this);
         items.load();
+        bossDrops = new io.sakurammo.loot.BossDropService(this);
         instances.startupCleanup(); // 兜底：删除宕机残留的 instance_* 世界目录
         parties.recoverFromCrash(); // 上次非正常结束的副本队伍 → IDLE（玩家背包在其上线时恢复）
 
@@ -268,6 +270,10 @@ public final class SakuraMMOPlugin extends JavaPlugin {
 
     public io.sakurammo.item.ItemManager items() {
         return items;
+    }
+
+    public io.sakurammo.loot.BossDropService bossDrops() {
+        return bossDrops;
     }
 
     public ClassManager classManager() {

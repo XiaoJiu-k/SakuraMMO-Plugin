@@ -245,6 +245,7 @@ party:
 
 dungeon:
   unknown: "&c没有这个副本：&f{id}"
+  level-too-low: "&c该副本需要等级 &fLv.{level}&c，你当前是 Lv.{current}。"
   solo-party: "&7检测到你单人来本，已自动创建单人队伍（副本结束自动解散）。"
   no-template: "&c模板世界 &f{world} &c不存在，请先放置模板或开启自动生成。"
   template-fail: "&c模板世界生成失败，查看控制台日志。"

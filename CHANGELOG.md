@@ -9,6 +9,13 @@
 - 指令 `/sm item give <player> <id> [数量]`、`/sm item list`
 - 卖出定价接入：有 value 的物品按 25% 回收，材料 value=0 → 不可卖（防刷金）
 
+### 第二期（同日）
+- **BossDropService + drops.yml**：Boss 掉落由插件 roll（不经 MythicMobs DropTable，避免 PDC 丢失）；
+  必掉材料 + 概率装备 + 最后一个 Boss 保底一件（防脸黑）
+- **副本矩阵 +4**：新手矿洞(min-level 10) / 幽暗森林(25) / 熔火之心(55) / 团本巨龙神殿(60)，各 3 Boss，共 12 只新 Boss
+- **副本等级门槛**：`min-level` 字段（玩家原版等级），不达标拒绝开本
+- **修复**：模板世界生成后的配置重写把副本名/Boss/奖励写死成黑铁王庭 → 改为只重写坐标、保留身份字段
+
 ## v4.1.1（2026-10-25）—— 无限耐久
 
 - **武器装备无限耐久**：取消 `PlayerItemDamageEvent`，武器/盔甲/工具/鞘翅一次性全覆盖（副本掉落、RPGLoot 词条、制造、升格产物都不再磨损）
