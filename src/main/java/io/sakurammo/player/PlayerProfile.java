@@ -43,6 +43,11 @@ public final class PlayerProfile {
 
     /** 进本前的主世界背包快照（Base64，41 格：36 背包 + 4 盔甲 + 1 副手）。出本恢复。 */
     private String inventorySnapshot;
+    /**
+     * 进本时是否真的清空过背包（v4.2.1 起默认 false = 装备保留）。
+     * 只有老存档（清空隔离时代）才会是 true，出本时按快照恢复。
+     */
+    private boolean inventoryIsolated;
     /** 正在参与的副本 run-id（null = 不在副本中）。断线/宕机后据此恢复或结算。 */
     private String activeRun;
     /** 已领取奖励的 run-id 集合（幂等防重复领取）。 */
@@ -239,6 +244,14 @@ public final class PlayerProfile {
     public void inventorySnapshot(String value) {
         this.inventorySnapshot = value;
         markDirty();
+    }
+
+    public boolean inventoryIsolated() {
+        return inventoryIsolated;
+    }
+
+    public void inventoryIsolated(boolean value) {
+        this.inventoryIsolated = value;
     }
 
     public String activeRun() {

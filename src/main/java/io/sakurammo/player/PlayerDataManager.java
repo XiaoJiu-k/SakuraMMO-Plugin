@@ -234,6 +234,7 @@ public final class PlayerDataManager {
             if (inv != null && !inv.isBlank() && !"null".equals(inv)) {
                 profile.inventorySnapshot(inv);
             }
+            profile.inventoryIsolated(yaml.getBoolean("inventory-isolated", false));
             String run = yaml.getString("active-run");
             if (run != null && !run.isBlank() && !"null".equals(run)) {
                 profile.activeRun(run);
@@ -296,6 +297,7 @@ public final class PlayerDataManager {
             yaml.set("skill-snapshots." + entry.getKey(), entry.getValue());
         }
         yaml.set("inventory-snapshot", profile.inventorySnapshot());
+        yaml.set("inventory-isolated", profile.inventoryIsolated());
         yaml.set("active-run", profile.activeRun());
         yaml.set("claimed-rewards", profile.claimedRewards().isEmpty() ? null : profile.claimedRewards());
         yaml.set("reward-mailbox", profile.rewardMailbox().isEmpty() ? null : profile.rewardMailbox());

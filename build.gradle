@@ -3,7 +3,7 @@ plugins {
 }
 
 group = 'io.sakurammo'
-version = '4.2.0'
+version = '4.2.1'
 
 java {
     toolchain {

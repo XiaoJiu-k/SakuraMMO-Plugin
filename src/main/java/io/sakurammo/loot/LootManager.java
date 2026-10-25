@@ -77,38 +77,31 @@ public final class LootManager {
 
     // ---------------- 进本 / 出本 ----------------
 
-    /** 进本：保存主世界背包快照 → 清空（隔离，神装带不进副本）。 */
+    /**
+     * 进本（v4.2.1 起）：<b>不再动玩家背包</b>——装备随身带进，副本里捡到的也随身带出。
+     * <p>
+     * 旧行为是「快照 + 清空 → 出本恢复」，本意是隔离主世界神装，实际后果是
+     * 进本后赤手空拳、副本战利品出本被丢弃。新策略下全程不覆盖玩家背包，
+     * 因此也不存在复制风险（没有任何一步会写入别人的旧数据）。
+     */
     public boolean snapshotAndClear(Player player) {
-        String snapshot = serializeInventory(player);
-        if (snapshot == null) {
-            return false;
-        }
-        PlayerProfile profile = plugin.playerData().getOrLoad(player);
-        profile.inventorySnapshot(snapshot);
-        player.getInventory().clear();
-        player.getInventory().setArmorContents(null);
-        player.updateInventory();
-        plugin.playerData().save(profile); // 快照立即落盘（防宕机丢主背包）
         return true;
     }
 
     /**
-     * 出本：丢弃副本内物品 → 恢复快照 → **捡到的制造底材随身带出** → 邮箱奖励并入背包（装不下的掉在脚下）→ 清理标记 → 阻塞落盘。
-     * 崩溃安全性：恢复后的最终背包与清空的邮箱在<b>同一次</b> save 里原子写盘。
+     * 出本：清理副本标记 → 发放奖励邮箱（幂等：标记早已落盘）。
      * <p>
-     * 隔离边界（阶段三调整）：带 PDC 底材标记的物品（副本 Boss 掉落）是制造系统的
-     * 正循环资源，<b>不参与隔离丢弃</b>，随玩家出本；其余副本内新增物品仍按快照隔离丢弃。
-     * <p>
-     * 快照为空且没有 active-run（宕机后上线只补发邮箱的路径）：<b>不碰现有背包</b>，仅发放邮箱，
-     * 否则会把玩家真实背包清掉。
+     * 兼容：老存档（清空隔离时代进本）仍有 {@code inventory-snapshot}，
+     * 此时按快照恢复（含副本内捡到的旧式底材随身带出）；新存档没有快照，直接跳过，
+     * 玩家背包原样保留。
      */
     public void restore(Player player) {
         PlayerProfile profile = plugin.playerData().getOrLoad(player);
-        boolean inDungeon = profile.activeRun() != null || profile.inventorySnapshot() != null;
+        String snapshot = profile.inventorySnapshot();
 
-        // 清空前先把副本内捡到的底材收起来（隔离豁免）
-        List<ItemStack> carriedMaterials = new ArrayList<>();
-        if (inDungeon) {
+        if (snapshot != null) {
+            // ===== 老存档兼容：清空隔离时代的恢复路径 =====
+            List<ItemStack> carriedMaterials = new ArrayList<>();
             for (ItemStack item : player.getInventory().getStorageContents()) {
                 if (item != null && !item.getType().isAir()
                         && CraftingManager.materialIdOf(item) != null) {
@@ -117,10 +110,7 @@ public final class LootManager {
             }
             player.getInventory().clear();
             player.getInventory().setArmorContents(null);
-        }
 
-        String snapshot = profile.inventorySnapshot();
-        if (snapshot != null) {
             ItemStack[] items = deserialize(snapshot);
             if (items != null) {
                 // 旧版（2.0.0 首轮）序列化含 46 项（41 格 + 重复盔甲/副手），截断到背包容量保证可恢复
@@ -134,14 +124,14 @@ public final class LootManager {
                 }
                 player.getInventory().setContents(items);
             }
+            for (ItemStack material : carriedMaterials) {
+                player.getInventory().addItem(material).values()
+                        .forEach(left -> player.getWorld().dropItemNaturally(player.getLocation(), left));
+            }
         }
-        profile.inventorySnapshot(null);
 
-        // 底材随身带出（放不下掉脚下）
-        for (ItemStack material : carriedMaterials) {
-            player.getInventory().addItem(material).values()
-                    .forEach(left -> player.getWorld().dropItemNaturally(player.getLocation(), left));
-        }
+        profile.inventorySnapshot(null);
+        profile.inventoryIsolated(false);
 
         // 邮箱奖励发放（幂等的「发放」步骤：标记早已落盘）
         List<String> mailbox = new ArrayList<>(profile.rewardMailbox());
