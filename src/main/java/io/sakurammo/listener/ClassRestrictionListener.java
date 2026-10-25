@@ -13,16 +13,10 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryMoveItemEvent;
-import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.event.inventory.PrepareAnvilEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
-import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
-import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
@@ -38,8 +32,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * <ul>
  *   <li><b>职业限制</b>：限定职业的物品（{@code required-class}）被其他职业持有时，
  *       攻击与右键全部拦截 —— 拿得起来但用不了。</li>
- *   <li><b>灵魂绑定</b>：{@code soulbound: true} 的物品不可丢弃、不可入任何容器（含末影箱/潜影盒/铁砧/交易），
- *       死亡不掉（改成复活后归还）。防的是「给大号装备→丢给小号」这条转移链。</li>
+ *   <li><b>灵魂绑定</b>：{@code soulbound: true} 的物品不可丢弃、死亡不掉（改成复活后归还）。</li>
+ *   <li>v4.2.5 起<b>允许存入容器</b>（箱子/末影箱/潜影盒/铁砧）：玩家能收纳，才谈得上好用；
+ *       身份仍由 PDC 绑定，其他人拿到也用不了（职业不符）。</li>
  * </ul>
  * 判定只认物品 PDC（{@code sakurammo:item_soulbound} / {@code item_class}），
  * 因此改配置、改 lore、铁砧改名都伪造不出绑定属性。
@@ -134,22 +129,6 @@ public final class ClassRestrictionListener implements Listener {
         }
     }
 
-    /** 右键物品展示框 / 盔甲架：等于把物品交出去，同样算「存进容器」。 */
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onInteractEntity(PlayerInteractEntityEvent event) {
-        var type = event.getRightClicked().getType();
-        if (type != org.bukkit.entity.EntityType.ITEM_FRAME
-                && type != org.bukkit.entity.EntityType.GLOW_ITEM_FRAME
-                && type != org.bukkit.entity.EntityType.ARMOR_STAND) {
-            return;   // 村民交易等由 InventoryClickEvent 兜住，不在这里无差别拦
-        }
-        ItemStack item = event.getPlayer().getInventory().getItem(event.getHand());
-        if (plugin.items().isSoulbound(item)) {
-            event.setCancelled(true);
-            notice(event.getPlayer(), "soulbind.no-container", "item", displayOf(item));
-        }
-    }
-
     // ==================== 灵魂绑定：丢弃 ====================
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -158,43 +137,6 @@ public final class ClassRestrictionListener implements Listener {
             event.setCancelled(true);
             notice(event.getPlayer(), "soulbind.no-drop",
                     "item", displayOf(event.getItemDrop().getItemStack()));
-        }
-    }
-
-    // ==================== 灵魂绑定：存入容器 / 交易 / 铁砧 ====================
-
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onClick(InventoryClickEvent event) {
-        if (!(event.getWhoClicked() instanceof Player player)) {
-            return;
-        }
-        // 玩家自己的背包（含 2x2 合成格、盔甲槽）内部随便挪，不算「存进容器」
-        if (isOwnInventory(event)) {
-            return;
-        }
-        ItemStack current = event.getCurrentItem();
-        ItemStack cursor = event.getCursor();
-        if (plugin.items().isSoulbound(current) || plugin.items().isSoulbound(cursor)) {
-            event.setCancelled(true);
-            ItemStack involved = plugin.items().isSoulbound(cursor) ? cursor : current;
-            notice(player, "soulbind.no-container", "item", displayOf(involved));
-        }
-    }
-
-    /** 漏斗 / 投掷器在容器之间搬运：物品本身带绑定标记就拒绝（双保险，正常路径下取不到）。 */
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onMove(InventoryMoveItemEvent event) {
-        if (plugin.items().isSoulbound(event.getItem())) {
-            event.setCancelled(true);
-        }
-    }
-
-    /** 铁砧：把绑定物品放上去改名 / 合并会生成新物品，直接不给放进结果。 */
-    @EventHandler(priority = EventPriority.HIGH)
-    public void onAnvil(PrepareAnvilEvent event) {
-        if (plugin.items().isSoulbound(event.getInventory().getItem(0))
-                || plugin.items().isSoulbound(event.getInventory().getItem(1))) {
-            event.setResult(null);
         }
     }
 
@@ -247,15 +189,6 @@ public final class ClassRestrictionListener implements Listener {
     }
 
     // ==================== 工具 ====================
-
-    private boolean isOwnInventory(InventoryClickEvent event) {
-        InventoryType type = event.getView().getType();
-        if (type != InventoryType.CRAFTING) {
-            return false;
-        }
-        // 末影箱的 holder 也是 Player，必须靠 view 类型区分（ENDER_CHEST）
-        return event.getView().getTopInventory().getHolder() instanceof Player;
-    }
 
     private String currentClass(Player player) {
         var profile = plugin.playerData().getOrLoad(player);
