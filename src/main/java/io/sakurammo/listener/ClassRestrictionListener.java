@@ -78,7 +78,8 @@ public final class ClassRestrictionListener implements Listener {
 
     // ==================== 职业限制：右键（放置/使用） ====================
 
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    // 空右键事件默认是 cancelled 状态，这里同样不能加 ignoreCancelled（否则拦不到）
+    @EventHandler(priority = EventPriority.HIGH)
     public void onInteract(PlayerInteractEvent event) {
         // 只处理「空右键」：真正会放置方块的路径交给 BlockPlaceEvent 精确拦截。
         // 早期版本在这里无差别取消 RIGHT_CLICK_BLOCK，结果拿信物时连箱子都打不开（实测踩到）。

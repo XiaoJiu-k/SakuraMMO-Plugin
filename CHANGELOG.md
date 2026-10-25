@@ -1,5 +1,14 @@
 # SakuraMMO 插件 · 版本变更记录
 
+## v4.2.6（2026-10-25）—— 修复右键空气无法触发远程攻击
+
+- **根因**：`PlayerInteractEvent` 在「右键空气」时构造器把 `useClickedBlock` 置为 `DENY`，
+  即事件默认就是 cancelled；监听器带 `ignoreCancelled = true` 会在派发前被过滤，
+  所以只有「对着方块右键」才进得来
+- **修复**：`RangedAttackListener` 与 `ClassRestrictionListener` 的空右键处理去掉 `ignoreCancelled`，
+  改为在方法内按 `getAction()` 自行筛选
+- 影响：术士拿信物对着天空/远处右键现在也能放灵魂火弹（之前必须对着方块）
+
 ## v4.2.5（2026-10-25）—— 取消容器限制 + 手持姿态修正
 
 - **取消「灵魂绑定物品不能存入容器」**：箱子 / 末影箱 / 潜影盒 / 铁砧 / 漏斗 / 展示框全部放行

@@ -51,7 +51,10 @@ public final class RangedAttackListener implements Listener {
         this.plugin = plugin;
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    // 注意：**不能加 ignoreCancelled = true**。
+    // PlayerInteractEvent 在「右键空气」时构造器就把 useClickedBlock 置为 DENY（isCancelled()==true），
+    // 带 ignoreCancelled 的监听器会在派发前被过滤掉 —— 表现就是「对着方块能放，对着空气没反应」。
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onInteract(PlayerInteractEvent event) {
         Action action = event.getAction();
         if (action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) {
